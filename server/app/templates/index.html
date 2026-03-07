@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Speech-to-Text Section -->
+<section id="speech-section" class="section active">
+    <div class="card">
+        <div class="card-header">
+            <h2>Speech to Text</h2>
+            <span class="badge">Romanian &middot; wav2vec2</span>
+        </div>
+        <div class="card-body">
+            <form id="speech-form">
+                <div class="upload-area" id="drop-zone">
+                    <div class="upload-icon">&#127908;</div>
+                    <p class="upload-text">Drag &amp; drop an audio file here</p>
+                    <p class="upload-hint">or click to browse &middot; WAV, MP3, FLAC, OGG</p>
+                    <input type="file" id="audio-file" name="file"
+                           accept=".wav,.mp3,.flac,.ogg,.opus,.webm,.m4a,.mp4,.wma"
+                           required hidden>
+                </div>
+                <div id="file-info" class="file-info hidden">
+                    <span id="file-name"></span>
+                    <button type="button" id="clear-file" class="btn-icon" title="Remove file">&times;</button>
+                </div>
+                <button type="submit" id="speech-submit" class="btn btn-primary" disabled>
+                    Transcribe
+                </button>
+            </form>
+
+            <div id="speech-loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Transcribing audio&hellip;</p>
+            </div>
+
+            <div id="speech-result" class="result hidden">
+                <h3>Transcription</h3>
+                <div id="speech-text" class="result-text"></div>
+                <div class="result-meta">
+                    <span id="speech-duration"></span>
+                    <span id="speech-lang"></span>
+                </div>
+            </div>
+
+            <div id="speech-error" class="error hidden"></div>
+        </div>
+    </div>
+</section>
+
+<!-- Template Renderer Section -->
+<section id="render-section" class="section">
+    <div class="card">
+        <div class="card-header">
+            <h2>Template Renderer</h2>
+            <span class="badge">Jinja2 &middot; HTML</span>
+        </div>
+        <div class="card-body">
+            <form id="render-form">
+                <div class="form-group">
+                    <label for="render-text">Text Content</label>
+                    <textarea id="render-text" name="text" rows="6"
+                              placeholder="Enter text here. Use {{ variable_name }} for template variables."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Template Variables</label>
+                    <div id="variables-container">
+                        <div class="variable-row">
+                            <input type="text" placeholder="Key" class="var-key">
+                            <input type="text" placeholder="Value" class="var-value">
+                            <button type="button" class="btn-icon remove-var" title="Remove">&times;</button>
+                        </div>
+                    </div>
+                    <button type="button" id="add-variable" class="btn btn-sm">+ Add Variable</button>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Render HTML</button>
+            </form>
+
+            <div id="render-loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Rendering&hellip;</p>
+            </div>
+
+            <div id="render-result" class="result hidden">
+                <h3>Preview</h3>
+                <iframe id="render-preview" sandbox="allow-same-origin"></iframe>
+            </div>
+
+            <div id="render-error" class="error hidden"></div>
+        </div>
+    </div>
+</section>
+{% endblock %}
