@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Jinja2 template — render with jinja2.Environment or jinja2.Template -->
+<meta charset="UTF-8">
+<title>ANNEX 3 — SNOWTAM {{ aerodrome_location_indicator }}</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 30px 40px;
+    font-size: 12.5px;
+    color: #111;
+  }
+  h1 { text-align: right;  font-size: 14px; margin: 4px 0; }
+  h2 { text-align: center; font-size: 15px; font-weight: bold; margin: 4px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 8px;
+  }
+  td, th {
+    border: 1.5px solid #000;
+    padding: 4px 7px;
+    vertical-align: top;
+  }
+  .hdr   { background: #f0f0f0; text-align: center; font-weight: bold; }
+  .lbl   { font-size: 11.5px; }
+  .small { font-size: 10.5px; font-style: italic; }
+  .c     { text-align: center; }
+  .val   { font-weight: bold; color: #003399; background: #eef4ff; padding: 1px 5px; }
+  .cond-list { padding: 5px 9px; line-height: 1.55; font-size: 11.5px; }
+  .arrow { text-align: center; font-size: 15px; }
+  .notes { font-size: 10.5px; padding: 7px; }
+  .sig td { height: 45px; text-align: center; font-weight: bold; font-size: 13px; }
+  .cell-label { font-size: 10px; font-style: italic; color: #555; }
+</style>
+</head>
+<body>
+
+<h1>ANNEX 3</h1>
+<h2>BAZĂ SNOWTAM {{ aerodrome_location_indicator }}</h2>
+<br>
+
+<!-- ════════════════ HEADER ════════════════ -->
+<table>
+  <tr>
+    <td rowspan="2" style="width:12%">(COM<br>heading)</td>
+    <td style="width:16%">(Priority<br>indicator)</td>
+    <td colspan="3">(Addresses)</td>
+    <td style="width:7%" class="c">&le; E</td>
+  </tr>
+  <tr>
+    <td>(Date and time of filing)</td>
+    <td colspan="3"><span class="val">{{ originator }}</span></td>
+    <td class="c">&le; E</td>
+  </tr>
+  <tr>
+    <td rowspan="2">(Abbreviated<br>heading)</td>
+    <td>
+      <span class="cell-label">(SWAA Serial Number)</span>
+    </td>
+    <td colspan="2">
+      <span class="cell-label">(Location Indicator / DTG)</span>
+    </td>
+    <td>(OPTIONAL GROUP)</td>
+    <td class="c">&le; E(</td>
+  </tr>
+  <tr>
+    <td class="c"><span class="val">{{ serial_number }}</span></td>
+    <td colspan="2"><span class="val">{{ location_indicator }}</span></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td colspan="2"><b>SNOWTAM ———►</b></td>
+    <td colspan="4">&le; E</td>
+  </tr>
+</table>
+
+<!-- ════════════════ PERFORMANCE SECTION ════════════════ -->
+<table>
+  <tr><td colspan="6" class="hdr">Aeroplane performance calculation section</td></tr>
+
+  <!-- A) Aerodrome Location Indicator -->
+  <tr>
+    <td class="lbl">(AERODROME LOCATION INDICATORS)</td>
+    <td class="c">M</td>
+    <td class="c">A)</td>
+    <td class="c" colspan="2"><span class="val">{{ aerodrome_location_indicator }}</span></td>
+    <td class="c">&le; E</td>
+  </tr>
+
+  <!-- B) Date/Time of Assessment -->
+  <tr>
+    <td class="lbl">(DATE/TIME OF ASSESSMENT <span class="small">Time of completion of assessment in UTC</span>)</td>
+    <td class="c">M</td>
+    <td class="c">B)</td>
+    <td class="c" colspan="2"><span class="val">{{ datetime_of_assessment }}</span></td>
+    <td class="arrow">►</td>
+  </tr>
+
+  <!-- C) Lower Runway Designation Number -->
+  <tr>
+    <td class="lbl">(LOWER RUNWAY DESIGNATION NUMBER)</td>
+    <td class="c">M</td>
+    <td class="c">C)</td>
+    <td class="c" colspan="2"><span class="val">{{ lower_runway_designation_number }}</span></td>
+    <td class="arrow">►</td>
+  </tr>
+
+  <!-- D) RWYCC per third -->
+  <tr>
+    <td class="lbl">(RUNWAY CONDITION CODE (RWYCC) ON EACH RUNWAY THIRD<br>
+        <span class="small">From Runway Condition Assessment Matrix (RCAM) 0, 1, 2, 3, 4, 5 or 6</span>)</td>
+    <td class="c">M</td>
+    <td class="c">D)</td>
+    <td class="c" colspan="2">
+      <span class="val">{{ runway_condition_code_third_1 }}</span> /
+      <span class="val">{{ runway_condition_code_third_2 }}</span> /
+      <span class="val">{{ runway_condition_code_third_3 }}</span>
+    </td>
+    <td class="arrow">►</td>
+  </tr>
+
+  <!-- E) Percent coverage per third -->
+  <tr>
+    <td class="lbl">(PER CENT COVERAGE CONTAMINANT FOR EACH RUNWAY THIRD)</td>
+    <td class="c">C</td>
+    <td class="c">E)</td>
+    <td class="c" colspan="2">
+      <span class="val">{{ percent_coverage_third_1 }}</span> /
+      <span class="val">{{ percent_coverage_third_2 }}</span> /
+      <span class="val">{{ percent_coverage_third_3 }}</span>
+    </td>
+    <td class="arrow">►</td>
+  </tr>
+
+  <!-- F) Depth per third -->
+  <tr>
+    <td class="lbl">(DEPTH (mm) OF LOOSE CONTAMINANT FOR EACH RUNWAY THIRD)</td>
+    <td class="c">C</td>
+    <td class="c">F)</td>
+    <td class="c" colspan="2">
+      <span class="val">{{ depth_loose_contaminant_third_1 }}</span> /
+      <span class="val">{{ depth_loose_contaminant_third_2 }}</span> /
+      <span class="val">{{ depth_loose_contaminant_third_3 }}</span>
+    </td>
+    <td class="arrow">►</td>
+  </tr>
+
+  <!-- G) Condition description + full condition list -->
+  <tr>
+    <td class="lbl" style="vertical-align:top">
+      (CONDITION DESCRIPTION OVER TOTAL RUNWAY LENGTH<br>
+      <span class="small">Observed on each runway third, starting from threshold having the lower runway designation number</span>)<br>
+      <div class="cond-list">
+        COMPACTED SNOW<br>
+        DRY<br>
+        DRY SNOW<br>
+        DRY SNOW ON TOP OF COMPACTED SNOW<br>
+        DRY SNOW ON TOP OF ICE<br>
+        FROST<br>
+        ICE<br>
+        SLIPPERY WET<br>
+        SLUSH<br>
+        SPECIALLY PREPARED WINTER RUNWAY<br>
+        STANDING WATER<br>
+        WATER ON TOP OF COMPACTED SNOW<br>
+        WET<br>
+        WET ICE<br>
+        WET SNOW<br>
+        WET SNOW ON TOP OF COMPACTED SNOW<br>
+        WET SNOW ON TOP OF ICE
+      </div>
+    </td>
+    <td class="c">M</td>
+    <td class="c">G)</td>
+    <td class="c" colspan="2">
+      <span class="val">{{ condition_description_third_1 }}</span><br>
+      <span class="val">{{ condition_description_third_2 }}</span><br>
+      <span class="val">{{ condition_description_third_3 }}</span>
+    </td>
+    <td></td>
+  </tr>
+
+  <!-- H) Width -->
+  <tr>
+    <td class="lbl">(WIDTH OF RUNWAY TO WHICH THE RUNWAY CONDITIONS CODES APPLY, IF LESS THAN THE PUBLISHED WIDTH)</td>
+    <td class="c">O</td>
+    <td class="c">H)</td>
+    <td class="c" colspan="3">&le; EE</td>
+  </tr>
+</table>
+
+<!-- ════════════════ SITUATIONAL AWARENESS ════════════════ -->
+<table>
+  <tr><td colspan="6" class="hdr">Situational awareness section</td></tr>
+  <tr><td class="lbl">(REDUCED RUNWAY LENGTH, IF LESS THAN THE PUBLISHED LENGTH (m))</td>
+      <td class="c">O</td><td class="c">I)</td><td></td><td></td><td class="arrow">►</td></tr>
+  <tr><td class="lbl">(DRIFTING SNOW ON THE RUNWAY)</td>
+      <td class="c">O</td><td class="c">J)</td><td></td><td></td><td class="arrow">►</td></tr>
+  <tr><td class="lbl">(LOOSE SAND ON THE RUNWAY)</td>
+      <td class="c">O</td><td class="c">K)</td><td></td><td></td><td class="arrow">►</td></tr>
+  <tr><td class="lbl">(CHEMICAL TREATMENT ON RUNWAY)</td>
+      <td class="c">O</td><td class="c">L)</td><td></td><td></td><td class="arrow">►</td></tr>
+  <tr><td class="lbl">(SNOWBANKS ON THE RUNWAY<br>
+      <span class="small">If present, distance from runway centreline (m) followed by 'L', 'R' or 'LR' as applicable</span>)</td>
+      <td class="c">O</td><td class="c">M)</td><td></td><td></td><td class="arrow">►</td></tr>
+  <tr><td class="lbl">(SNOWBANKS ON A TAXIWAY)</td>
+      <td class="c">O</td><td class="c">N)</td><td></td><td></td><td class="arrow">►</td></tr>
+  <tr><td class="lbl">(SNOWBANKS ADJACENT TO THE RUNWAY)</td>
+      <td class="c">O</td><td class="c">O)</td><td></td><td></td><td class="arrow">►</td></tr>
+  <tr><td class="lbl">(TAXIWAY CONDITIONS)</td>
+      <td class="c">O</td><td class="c">P)</td><td></td><td></td><td class="arrow">►</td></tr>
+  <tr><td class="lbl">(APRON CONDITIONS)</td>
+      <td class="c">O</td><td class="c">R)</td><td></td><td></td><td class="arrow">►</td></tr>
+  <tr><td class="lbl">(MEASURED FRICTION COEFFICIENT)</td>
+      <td class="c">O</td><td class="c">S)</td><td></td><td></td><td class="arrow">►</td></tr>
+  <tr><td class="lbl">(PLAIN-LANGUAGE REMARKS)</td>
+      <td class="c">O</td><td class="c">T)</td><td></td><td></td><td class="c">) &le;&le; E</td></tr>
+</table>
+
+<!-- ════════════════ NOTES ════════════════ -->
+<div class="notes">
+  <b>NOTES:</b><br>
+  1. *Enter ICAO nationality letters as given in ICAO Doc 7910, Part 2 or otherwise applicable aerodrome identifier.<br>
+  2. Information on other runways, repeat from B to H.<br>
+  3. Information in the situational awareness section repeated for each runway, taxiway and apron. Repeat as applicable, when reported.<br>
+  4. Words in brackets () not to be transmitted.<br>
+  5. For letters A) to T), refer to the Instructions for the completion of the SNOWTAM format, paragraph 1, item b).
+</div>
+<br>
+<p><b>SIGNATURE OF ORIGINATOR</b> <i>(not for transmission)</i></p>
+<table class="sig">
+  <tr>
+    <td style="width:40%">FUNCȚIA / NUMELE EMITENTULUI</td>
+    <td style="width:35%">SEMNĂTURA EMITENTULUI</td>
+    <td style="width:25%">DATA: <span class="val">{{ datetime_of_assessment_readable }}</span></td>
+  </tr>
+</table>
+
+</body>
+</html>
