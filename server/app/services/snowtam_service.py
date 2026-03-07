@@ -101,8 +101,8 @@ AIRPORTS = {
         "icao": "LROD",
         "runway": "09",
         "operators": [
-            {"code": "OPS01", "name": "Dispecer LROD 1"},
-            {"code": "OPS02", "name": "Dispecer LROD 2"},
+            {"code": "OPS01", "name": "Dispecer LROD 1", "originator": "LROD/OPS01"},
+            {"code": "OPS02", "name": "Dispecer LROD 2", "originator": "LROD/OPS02"},
         ],
         "default_operator": "OPS01",
     },
@@ -111,11 +111,11 @@ AIRPORTS = {
         "icao": "LRTR",
         "runway": "11",
         "operators": [
-            {"code": "TWR01", "name": "Dispecer LRTR 1"},
-            {"code": "TWR02", "name": "Dispecer LRTR 2"},
-            {"code": "TWR03", "name": "Dispecer LRTR 3"},
+            {"code": "OPS01", "name": "Dispecer LRTR 1", "originator": "LRTR/OPS01"},
+            {"code": "OPS02", "name": "Dispecer LRTR 2", "originator": "LRTR/OPS02"},
+            {"code": "OPS03", "name": "Dispecer LRTR 3", "originator": "LRTR/OPS03"},
         ],
-        "default_operator": "TWR01",
+        "default_operator": "OPS01",
     },
 }
 
@@ -233,7 +233,11 @@ def _add_standard_values(
 ) -> dict:
     airport = AIRPORTS.get(airport_code or DEFAULT_AIRPORT, AIRPORTS[DEFAULT_AIRPORT])
     icao = airport["icao"]
-    login = operator_code or airport["default_operator"]
+    op_code = operator_code or airport["default_operator"]
+    operator = next(
+        (op for op in airport["operators"] if op["code"] == op_code),
+        airport["operators"][0],
+    )
     now = datetime.now(timezone.utc)
     dtc["serial_number"] = _next_serial(icao)
     dtc["location_indicator"] = f"{icao} {now.strftime('%d%H%M')}"
@@ -241,7 +245,7 @@ def _add_standard_values(
     dtc["lower_runway_designation_number"] = airport["runway"]
     dtc["datetime_of_assessment"] = now.strftime("%m%d%H%MZ")
     dtc["datetime_of_assessment_readable"] = now.strftime("%Y-%m-%d %H:%M UTC")
-    dtc["originator"] = f"{icao}/{login}"
+    dtc["originator"] = operator["originator"]
     return dtc
 
 

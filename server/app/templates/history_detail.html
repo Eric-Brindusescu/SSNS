@@ -5,7 +5,7 @@
     <div class="card">
         <div class="card-header">
             <h2>Raport #{{ gen.id }}</h2>
-            <span class="badge">{{ gen.created_at[:19].replace('T', ' ') }} UTC</span>
+            <span class="badge">{{ gen.airport_code }} &middot; {{ gen.operator_code }} &middot; {{ gen.created_at[:19].replace('T', ' ') }} UTC</span>
         </div>
         <div class="card-body">
             <a href="/history" class="btn btn-sm">&larr; Înapoi la Istoric</a>

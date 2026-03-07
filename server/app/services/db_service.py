@@ -25,6 +25,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS generations (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             created_at TEXT NOT NULL,
+            airport_code TEXT NOT NULL,
+            operator_code TEXT NOT NULL,
             speech_text TEXT,
             curated_text TEXT,
             default_parameters TEXT NOT NULL,
@@ -38,6 +40,8 @@ def init_db():
 
 
 def save_generation(
+    airport_code: str,
+    operator_code: str,
     speech_text: str,
     curated_text: str,
     default_parameters: dict,
@@ -49,11 +53,14 @@ def save_generation(
     cursor = conn.execute(
         """
         INSERT INTO generations
-            (created_at, speech_text, curated_text, default_parameters, extracted_parameters, generated_html)
-        VALUES (?, ?, ?, ?, ?, ?)
+            (created_at, airport_code, operator_code, speech_text, curated_text,
+             default_parameters, extracted_parameters, generated_html)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             datetime.now(timezone.utc).isoformat(),
+            airport_code,
+            operator_code,
             speech_text,
             curated_text,
             json.dumps(default_parameters, ensure_ascii=False),
@@ -68,12 +75,28 @@ def save_generation(
     return row_id
 
 
-def get_all_generations() -> list[dict]:
-    """Return all generations ordered by most recent first."""
+def get_all_generations(
+    airport_code: str | None = None,
+    operator_code: str | None = None,
+) -> list[dict]:
+    """Return all generations ordered by most recent first, optionally filtered."""
+    query = (
+        "SELECT id, created_at, airport_code, operator_code, speech_text, curated_text "
+        "FROM generations"
+    )
+    conditions = []
+    params = []
+    if airport_code:
+        conditions.append("airport_code = ?")
+        params.append(airport_code)
+    if operator_code:
+        conditions.append("operator_code = ?")
+        params.append(operator_code)
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+    query += " ORDER BY id DESC"
     conn = _get_connection()
-    rows = conn.execute(
-        "SELECT id, created_at, speech_text, curated_text FROM generations ORDER BY id DESC"
-    ).fetchall()
+    rows = conn.execute(query, params).fetchall()
     conn.close()
     return [dict(row) for row in rows]
 

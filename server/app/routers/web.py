@@ -1,7 +1,9 @@
 """Router for the web interface (server-rendered HTML pages)."""
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, Request
+from typing import Optional
+
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -19,10 +21,20 @@ async def index(request: Request):
 
 
 @router.get("/history", response_class=HTMLResponse)
-async def history(request: Request):
-    generations = get_all_generations()
+async def history(
+    request: Request,
+    airport: Optional[str] = Query(None),
+    operator: Optional[str] = Query(None),
+):
+    generations = get_all_generations(airport_code=airport, operator_code=operator)
     return templates.TemplateResponse(
-        "history.html", {"request": request, "generations": generations}
+        "history.html",
+        {
+            "request": request,
+            "generations": generations,
+            "filter_airport": airport or "",
+            "filter_operator": operator or "",
+        },
     )
 
 

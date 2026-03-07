@@ -66,6 +66,8 @@ async def snowtam_endpoint(request: SnowtamRequest):
         ) from exc
 
     generation_id = save_generation(
+        airport_code=request.airport_code or "LROD",
+        operator_code=request.operator_code or "OPS01",
         speech_text=request.speech_text,
         curated_text=request.curated_text,
         default_parameters=DEFAULTS,

@@ -567,6 +567,16 @@ input[type="text"]:focus,
     line-height: 1.5;
 }
 
+.history-filters {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.filter-actions {
+    flex: 0 0 auto;
+}
+
 .empty-state {
     text-align: center;
     color: var(--text-muted);
