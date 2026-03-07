@@ -1,0 +1,22 @@
+{
+  "lower_runway_designation_number": "09",
+  "runway_condition_code_third_1": 5,
+  "runway_condition_code_third_2": 5,
+  "runway_condition_code_third_3": 5,
+  "percent_coverage_third_1": "NR",
+  "percent_coverage_third_2": "NR",
+  "percent_coverage_third_3": "NR",
+  "depth_loose_contaminant_third_1": "NR",
+  "depth_loose_contaminant_third_2": "NR",
+  "depth_loose_contaminant_third_3": "NR",
+  "condition_description_third_1": "DRY",
+  "condition_description_third_2": "DRY",
+  "condition_description_third_3": "DRY",
+  "serial_number": "SWLROD0001",
+  "location_indicator": "LROD 071319",
+  "aerodrome_location_indicator": "LROD",
+  "datetime_of_assessment": "03071319Z",
+  "datetime_of_assessment_readable": "2026-03-07 13:19 UTC",
+  "originator": "LROD/OPS01",
+  "condition_list_html": "COMPACTED SNOW<br>\n      <span class=\"active\">DRY</span><br>\n      DRY SNOW<br>\n      DRY SNOW ON TOP OF COMPACTED SNOW<br>\n      DRY SNOW ON TOP OF ICE<br>\n      FROST<br>\n      ICE<br>\n      SLIPPERY WET<br>\n      SLUSH<br>\n      SPECIALLY PREPARED WINTER RUNWAY<br>\n      STANDING WATER<br>\n      WATER ON TOP OF COMPACTED SNOW<br>\n      WET<br>\n      WET ICE<br>\n      WET SNOW<br>\n      WET SNOW ON TOP OF COMPACTED SNOW<br>\n      WET SNOW ON TOP OF ICE"
+}
