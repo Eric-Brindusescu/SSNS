@@ -1,7 +1,7 @@
 """Router for the speech-to-text API endpoint."""
 import logging
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
 
 from app.config import settings
 from app.schemas.speech import TranscriptionResponse
@@ -24,6 +24,15 @@ ALLOWED_EXTENSIONS = {
 async def speech_to_text(
     file: UploadFile = File(
         ..., description="Audio file to transcribe (WAV, MP3, FLAC, OGG, etc.)"
+    ),
+    alpha: float | None = Form(
+        None, description="LM weight (higher = trust LM more). Default from server config."
+    ),
+    beta: float | None = Form(
+        None, description="Word insertion bonus (higher = favor more words). Default from server config."
+    ),
+    hotwords: str | None = Form(
+        None, description="Comma-separated list of domain-specific words to boost."
     ),
 ):
     # Validate file extension
@@ -52,8 +61,16 @@ async def speech_to_text(
     if len(file_bytes) == 0:
         raise HTTPException(status_code=400, detail="Empty audio file")
 
+    hotword_list = (
+        [w.strip() for w in hotwords.split(",") if w.strip()]
+        if hotwords
+        else None
+    )
+
     try:
-        result = await transcribe_audio(file_bytes, filename)
+        result = await transcribe_audio(
+            file_bytes, filename, alpha=alpha, beta=beta, hotwords=hotword_list,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:

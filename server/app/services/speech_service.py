@@ -16,7 +16,14 @@ logger = logging.getLogger(__name__)
 TARGET_SR = 16_000
 
 
-async def transcribe_audio(file_bytes: bytes, filename: str) -> dict:
+async def transcribe_audio(
+    file_bytes: bytes,
+    filename: str,
+    *,
+    alpha: float | None = None,
+    beta: float | None = None,
+    hotwords: list[str] | None = None,
+) -> dict:
     """
     Transcribe audio bytes to text.
 
@@ -25,6 +32,11 @@ async def transcribe_audio(file_bytes: bytes, filename: str) -> dict:
     3. Resample to 16kHz if needed
     4. Run through wav2vec2 model
     5. Decode with CTC (LM-boosted if available)
+
+    Optional decoding parameters (LM mode only):
+        alpha: LM weight (higher = trust LM more). Default from config.
+        beta: Word insertion bonus (higher = favor more words). Default from config.
+        hotwords: Domain-specific words to boost during decoding.
     """
     speech_array, sample_rate = _load_audio(file_bytes, filename)
 
@@ -69,7 +81,20 @@ async def transcribe_audio(file_bytes: bytes, filename: str) -> dict:
 
     # Decode
     if uses_lm():
-        result = processor.batch_decode(logits.cpu().numpy())
+        decode_alpha = alpha if alpha is not None else settings.alpha
+        decode_beta = beta if beta is not None else settings.beta
+        decode_hotwords = hotwords if hotwords is not None else (settings.hotwords or None)
+
+        decode_kwargs = {
+            "beam_width": settings.beam_width,
+            "alpha": decode_alpha,
+            "beta": decode_beta,
+        }
+        if decode_hotwords:
+            decode_kwargs["hotwords"] = decode_hotwords
+            decode_kwargs["hotword_weight"] = settings.hotword_weight
+
+        result = processor.batch_decode(logits.cpu().numpy(), **decode_kwargs)
         text = result.text[0] if hasattr(result, "text") else result[0]
     else:
         predicted_ids = torch.argmax(logits, dim=-1)
