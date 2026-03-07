@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Speech & Render Server",
+    title="Completare Automata Bază Snowtam LROD",
     version="1.0.0",
     lifespan=lifespan,
 )

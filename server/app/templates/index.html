@@ -33,13 +33,25 @@
             </div>
 
             <div id="speech-result" class="result hidden">
-                <h3>Transcription</h3>
+                <h3>Raw Transcription</h3>
                 <div id="speech-text" class="result-text"></div>
                 <div class="result-meta">
                     <span id="speech-duration"></span>
                     <span id="speech-lang"></span>
                 </div>
             </div>
+
+            <div id="curate-loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Curating aviation report&hellip;</p>
+            </div>
+
+            <div id="curate-result" class="result result-curated hidden">
+                <h3>Curated Aviation Report</h3>
+                <div id="curate-text" class="result-text"></div>
+            </div>
+
+            <div id="curate-error" class="error hidden"></div>
 
             <div id="speech-error" class="error hidden"></div>
         </div>

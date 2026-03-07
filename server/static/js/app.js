@@ -68,20 +68,31 @@ clearFileBtn.addEventListener('click', () => {
     submitBtn.disabled = true;
     speechResult.classList.add('hidden');
     speechError.classList.add('hidden');
+    curateResult.classList.add('hidden');
+    curateError.classList.add('hidden');
 });
 
-// Submit transcription
+// Curate elements
+const curateLoading = document.getElementById('curate-loading');
+const curateResult  = document.getElementById('curate-result');
+const curateError   = document.getElementById('curate-error');
+
+// Submit transcription, then auto-curate
 speechForm.addEventListener('submit', async e => {
     e.preventDefault();
     if (!audioInput.files.length) return;
 
     speechResult.classList.add('hidden');
     speechError.classList.add('hidden');
+    curateResult.classList.add('hidden');
+    curateError.classList.add('hidden');
     speechLoading.classList.remove('hidden');
     submitBtn.disabled = true;
 
     const formData = new FormData();
     formData.append('file', audioInput.files[0]);
+
+    let transcribedText = '';
 
     try {
         const res = await fetch('/api/speech-to-text', {
@@ -95,6 +106,7 @@ speechForm.addEventListener('submit', async e => {
         }
 
         const data = await res.json();
+        transcribedText = data.text;
         document.getElementById('speech-text').textContent = data.text;
         document.getElementById('speech-duration').textContent = `Duration: ${data.duration_seconds}s`;
         document.getElementById('speech-lang').textContent = `Language: ${data.language}`;
@@ -102,8 +114,41 @@ speechForm.addEventListener('submit', async e => {
     } catch (err) {
         speechError.textContent = err.message;
         speechError.classList.remove('hidden');
-    } finally {
         speechLoading.classList.add('hidden');
+        submitBtn.disabled = false;
+        return;
+    }
+
+    speechLoading.classList.add('hidden');
+
+    // Auto-curate the transcribed text
+    if (!transcribedText.trim()) {
+        submitBtn.disabled = false;
+        return;
+    }
+
+    curateLoading.classList.remove('hidden');
+
+    try {
+        const res = await fetch('/api/curate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: transcribedText }),
+        });
+
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || `Curation error (${res.status})`);
+        }
+
+        const data = await res.json();
+        document.getElementById('curate-text').textContent = data.curated;
+        curateResult.classList.remove('hidden');
+    } catch (err) {
+        curateError.textContent = `Curation failed: ${err.message}`;
+        curateError.classList.remove('hidden');
+    } finally {
+        curateLoading.classList.add('hidden');
         submitBtn.disabled = false;
     }
 });

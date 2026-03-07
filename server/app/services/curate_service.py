@@ -3,6 +3,7 @@ Service for curating text via a local LM Studio model.
 Reformats raw transcription into structured aviation/runway condition reports.
 """
 import logging
+import re
 
 import httpx
 
@@ -23,8 +24,13 @@ Rules:
 - Preserve all factual data (numbers, measurements, runway identifiers) exactly as given.
 - Use concise, professional aviation language.
 - Output in the same language as the input (typically Romanian).
+- DO NOT format the return. RETURN ONLY THE RAW TEXT. Do NOT add any explanations or commentary.
 - Do NOT add information that was not in the original text.
 - Do NOT wrap the output in markdown code blocks.
+
+Example:
+Input: dipecerato star pisti de punere zăpad de 5 militri, frânare redusă, pe toate treimile
+Output: Starea pistei: acoperită zăpadă, grosime 5 mm pe toate celei trei componente. Acțiune de frânare: redusă.
 """
 
 
@@ -43,6 +49,7 @@ async def curate_text(text: str) -> str:
         ],
         "temperature": settings.lm_studio_temperature,
         "max_tokens": settings.lm_studio_max_tokens,
+        "no_think": True,
     }
 
     async with httpx.AsyncClient(timeout=120.0) as client:
@@ -61,4 +68,9 @@ async def curate_text(text: str) -> str:
             )
 
     data = response.json()
-    return data["choices"][0]["message"]["content"].strip()
+    content = data["choices"][0]["message"]["content"]
+
+    # Strip <think>...</think> blocks if the model includes them
+    content = re.sub(r"<think>[\s\S]*?</think>", "", content)
+
+    return content.strip()

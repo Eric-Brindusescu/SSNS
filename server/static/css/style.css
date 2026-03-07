@@ -373,6 +373,20 @@ input[type="text"]:focus {
     color: var(--text-muted);
 }
 
+/* ── Curated Result ───────────────────────────────── */
+.result-curated {
+    background: #eff6ff;
+    border-color: #93c5fd;
+}
+
+.result-curated h3 {
+    color: #3b82f6;
+}
+
+.result-curated .result-text {
+    border-color: #bfdbfe;
+}
+
 /* ── Render Preview ───────────────────────────────── */
 #render-preview {
     width: 100%;
