@@ -18,24 +18,13 @@ ICAO standards.
 
 Rules:
 - Fix any obvious transcription errors or garbled words related to aviation terminology.
-- Use standard aviation abbreviations where appropriate (RWY, TWY, APRON, FICON, etc.).
-- Structure the output with clear sections: runway designation, surface condition, \
-  contaminant type and depth, braking action, and any remarks.
+- The input is in Romanian and the output should also be in Romanian.
+- Can contain the some of the words: stare, starea, depunere, polei, zăpadă, milimetri, treimi, treime, dispecer, dispecerat, trun, suprafață, pistă, umedă, uscată, contaminant, apă, gheață, acțiune de frânare, bună, redusă, proastă, cauciuc, zona de touchdown
 - Preserve all factual data (numbers, measurements, runway identifiers) exactly as given.
 - Use concise, professional aviation language.
-- If the input mentions multiple runways or zones, organize them separately.
 - Output in the same language as the input (typically Romanian).
 - Do NOT add information that was not in the original text.
 - Do NOT wrap the output in markdown code blocks.
-
-Output format example:
----
-RWY 07/25
-  Suprafață: umedă
-  Contaminant: apă, 2mm
-  Acțiune de frânare: bună
-  Observații: zona de touchdown - depuneri de cauciuc
----
 """
 
 
