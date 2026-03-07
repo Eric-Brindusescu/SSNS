@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section active">
+    <div class="card">
+        <div class="card-header">
+            <h2>Istoric Rapoarte Generate</h2>
+            <span class="badge">{{ generations | length }} rapoarte</span>
+        </div>
+        <div class="card-body">
+            {% if generations %}
+            <div class="history-list">
+                {% for gen in generations %}
+                <a href="/history/{{ gen.id }}" class="history-item">
+                    <div class="history-item-header">
+                        <span class="history-id">#{{ gen.id }}</span>
+                        <span class="history-date">{{ gen.created_at[:19].replace('T', ' ') }} UTC</span>
+                    </div>
+                    <div class="history-preview">
+                        {{ gen.curated_text[:150] if gen.curated_text else gen.speech_text[:150] if gen.speech_text else 'Fără text' }}{% if (gen.curated_text and gen.curated_text|length > 150) or (gen.speech_text and gen.speech_text|length > 150) %}&hellip;{% endif %}
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="empty-state">Nu există rapoarte generate. Generați primul raport din pagina principală.</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

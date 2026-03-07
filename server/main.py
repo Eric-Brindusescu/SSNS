@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import settings
 from app.dependencies import preload_model
 from app.routers import curate, render, snowtam, speech, web
+from app.services.db_service import init_db
 
 logging.basicConfig(
     level=logging.INFO,
@@ -26,6 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent
 async def lifespan(app: FastAPI):
     """Load the wav2vec2 model once at startup."""
     preload_model()
+    init_db()
     yield
 
 

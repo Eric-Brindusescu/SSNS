@@ -62,10 +62,17 @@
                 <h3>Formular SNOWTAM</h3>
                 <iframe id="snowtam-preview" sandbox="allow-same-origin"></iframe>
                 <div class="snowtam-actions">
-                    <button type="button" id="export-and-email" class="btn btn-action btn-email">
+                    <button type="button" id="export-pdf" class="btn btn-action btn-pdf">
+                        &#128196; Descarc&#259; PDF
+                    </button>
+                </div>
+                <div class="snowtam-email-form">
+                    <input type="email" id="email-to" placeholder="Adresa email destinatar" class="email-input">
+                    <button type="button" id="send-email" class="btn btn-action btn-email">
                         &#9993; Trimite pe Email
                     </button>
                 </div>
+                <div id="email-status" class="hidden"></div>
             </div>
 
             <div id="snowtam-error" class="error hidden"></div>

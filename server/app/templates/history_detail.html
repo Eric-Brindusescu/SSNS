@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section active">
+    <div class="card">
+        <div class="card-header">
+            <h2>Raport #{{ gen.id }}</h2>
+            <span class="badge">{{ gen.created_at[:19].replace('T', ' ') }} UTC</span>
+        </div>
+        <div class="card-body">
+            <a href="/history" class="btn btn-sm">&larr; Înapoi la Istoric</a>
+
+            {% if gen.speech_text %}
+            <div class="result" style="margin-top: 1.25rem;">
+                <h3>Transcriere Brută</h3>
+                <div class="result-text">{{ gen.speech_text }}</div>
+            </div>
+            {% endif %}
+
+            {% if gen.curated_text %}
+            <div class="result result-curated">
+                <h3>Raport Aviație Curat</h3>
+                <div class="result-text">{{ gen.curated_text }}</div>
+            </div>
+            {% endif %}
+
+            <div class="detail-params">
+                <div class="params-section">
+                    <h3>Parametri Extrași</h3>
+                    <table class="params-table">
+                        {% for key, value in gen.extracted_parameters.items() %}
+                        <tr>
+                            <td class="param-key">{{ key }}</td>
+                            <td class="param-value">{{ value }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+
+                <div class="params-section">
+                    <h3>Parametri Impliciți</h3>
+                    <table class="params-table">
+                        {% for key, value in gen.default_parameters.items() %}
+                        <tr>
+                            <td class="param-key">{{ key }}</td>
+                            <td class="param-value">{{ value }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+
+            <div class="result result-snowtam">
+                <h3>Formular SNOWTAM</h3>
+                <iframe id="snowtam-preview" srcdoc="{{ gen.generated_html | e }}" sandbox="allow-same-origin"></iframe>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
