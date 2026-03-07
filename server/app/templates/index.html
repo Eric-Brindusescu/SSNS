@@ -1,39 +1,39 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Speech-to-Text Section -->
+<!-- Secțiunea Speech-to-Text -->
 <section id="speech-section" class="section active">
     <div class="card">
         <div class="card-header">
-            <h2>Speech to Text</h2>
-            <span class="badge">Romanian &middot; wav2vec2</span>
+            <h2>Generare Automata Raport Aviatie</h2>
+            <span class="badge">Powered by Romanian &middot; UPB / wav2vec2</span>
         </div>
         <div class="card-body">
             <form id="speech-form">
                 <div class="upload-area" id="drop-zone">
                     <div class="upload-icon">&#127908;</div>
-                    <p class="upload-text">Drag &amp; drop an audio file here</p>
-                    <p class="upload-hint">or click to browse &middot; WAV, MP3, FLAC, OGG</p>
+                    <p class="upload-text">Trage &amp; plaseaz&#259; un fi&#537;ier audio aici</p>
+                    <p class="upload-hint">sau apas&#259; pentru a selecta &middot; WAV, MP3, FLAC, OGG</p>
                     <input type="file" id="audio-file" name="file"
                            accept=".wav,.mp3,.flac,.ogg,.opus,.webm,.m4a,.mp4,.wma"
                            required hidden>
                 </div>
                 <div id="file-info" class="file-info hidden">
                     <span id="file-name"></span>
-                    <button type="button" id="clear-file" class="btn-icon" title="Remove file">&times;</button>
+                    <button type="button" id="clear-file" class="btn-icon" title="&#536;terge fi&#537;ier">&times;</button>
                 </div>
                 <button type="submit" id="speech-submit" class="btn btn-primary" disabled>
-                    Transcribe
+                    Genereaza Raport
                 </button>
             </form>
 
             <div id="speech-loading" class="loading hidden">
                 <div class="spinner"></div>
-                <p>Transcribing audio&hellip;</p>
+                <p>Se transcrie audio&hellip;</p>
             </div>
 
             <div id="speech-result" class="result hidden">
-                <h3>Raw Transcription</h3>
+                <h3>Transcriere Brut&#259;</h3>
                 <div id="speech-text" class="result-text"></div>
                 <div class="result-meta">
                     <span id="speech-duration"></span>
@@ -43,58 +43,75 @@
 
             <div id="curate-loading" class="loading hidden">
                 <div class="spinner"></div>
-                <p>Curating aviation report&hellip;</p>
+                <p>Se cureaz&#259; raportul de avia&#539;ie&hellip;</p>
             </div>
 
             <div id="curate-result" class="result result-curated hidden">
-                <h3>Curated Aviation Report</h3>
+                <h3>Raport Avia&#539;ie Curat</h3>
                 <div id="curate-text" class="result-text"></div>
             </div>
 
             <div id="curate-error" class="error hidden"></div>
+
+            <div id="snowtam-loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Se extrag c&#226;mpurile SNOWTAM&hellip;</p>
+            </div>
+
+            <div id="snowtam-result" class="result result-snowtam hidden">
+                <h3>Formular SNOWTAM</h3>
+                <iframe id="snowtam-preview" sandbox="allow-same-origin"></iframe>
+                <div class="snowtam-actions">
+                    <button type="button" id="export-and-email" class="btn btn-action btn-email">
+                        &#9993; Trimite pe Email
+                    </button>
+                </div>
+            </div>
+
+            <div id="snowtam-error" class="error hidden"></div>
 
             <div id="speech-error" class="error hidden"></div>
         </div>
     </div>
 </section>
 
-<!-- Template Renderer Section -->
+<!-- Secțiunea Randare Șablon -->
 <section id="render-section" class="section">
     <div class="card">
         <div class="card-header">
-            <h2>Template Renderer</h2>
+            <h2>Randare &#536;ablon</h2>
             <span class="badge">Jinja2 &middot; HTML</span>
         </div>
         <div class="card-body">
             <form id="render-form">
                 <div class="form-group">
-                    <label for="render-text">Text Content</label>
+                    <label for="render-text">Con&#539;inut Text</label>
                     <textarea id="render-text" name="text" rows="6"
-                              placeholder="Enter text here. Use {{ variable_name }} for template variables."></textarea>
+                              placeholder="Introdu textul aici. Folosește {{ variable_name }} pentru variabile de șablon."></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label>Template Variables</label>
+                    <label>Variabile &#536;ablon</label>
                     <div id="variables-container">
                         <div class="variable-row">
-                            <input type="text" placeholder="Key" class="var-key">
-                            <input type="text" placeholder="Value" class="var-value">
-                            <button type="button" class="btn-icon remove-var" title="Remove">&times;</button>
+                            <input type="text" placeholder="Cheie" class="var-key">
+                            <input type="text" placeholder="Valoare" class="var-value">
+                            <button type="button" class="btn-icon remove-var" title="&#536;terge">&times;</button>
                         </div>
                     </div>
-                    <button type="button" id="add-variable" class="btn btn-sm">+ Add Variable</button>
+                    <button type="button" id="add-variable" class="btn btn-sm">+ Adaug&#259; Variabil&#259;</button>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Render HTML</button>
+                <button type="submit" class="btn btn-primary">Randeaz&#259; HTML</button>
             </form>
 
             <div id="render-loading" class="loading hidden">
                 <div class="spinner"></div>
-                <p>Rendering&hellip;</p>
+                <p>Se randeaz&#259;&hellip;</p>
             </div>
 
             <div id="render-result" class="result hidden">
-                <h3>Preview</h3>
+                <h3>Previzualizare</h3>
                 <iframe id="render-preview" sandbox="allow-same-origin"></iframe>
             </div>
 

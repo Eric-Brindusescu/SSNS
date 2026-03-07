@@ -70,12 +70,19 @@ clearFileBtn.addEventListener('click', () => {
     speechError.classList.add('hidden');
     curateResult.classList.add('hidden');
     curateError.classList.add('hidden');
+    snowtamResult.classList.add('hidden');
+    snowtamError.classList.add('hidden');
 });
 
 // Curate elements
 const curateLoading = document.getElementById('curate-loading');
 const curateResult  = document.getElementById('curate-result');
 const curateError   = document.getElementById('curate-error');
+
+// SNOWTAM elements
+const snowtamLoading = document.getElementById('snowtam-loading');
+const snowtamResult  = document.getElementById('snowtam-result');
+const snowtamError   = document.getElementById('snowtam-error');
 
 // Submit transcription, then auto-curate
 speechForm.addEventListener('submit', async e => {
@@ -86,6 +93,8 @@ speechForm.addEventListener('submit', async e => {
     speechError.classList.add('hidden');
     curateResult.classList.add('hidden');
     curateError.classList.add('hidden');
+    snowtamResult.classList.add('hidden');
+    snowtamError.classList.add('hidden');
     speechLoading.classList.remove('hidden');
     submitBtn.disabled = true;
 
@@ -102,14 +111,14 @@ speechForm.addEventListener('submit', async e => {
 
         if (!res.ok) {
             const err = await res.json();
-            throw new Error(err.detail || `Server error (${res.status})`);
+            throw new Error(err.detail || `Eroare server (${res.status})`);
         }
 
         const data = await res.json();
         transcribedText = data.text;
         document.getElementById('speech-text').textContent = data.text;
-        document.getElementById('speech-duration').textContent = `Duration: ${data.duration_seconds}s`;
-        document.getElementById('speech-lang').textContent = `Language: ${data.language}`;
+        document.getElementById('speech-duration').textContent = `Durată: ${data.duration_seconds}s`;
+        document.getElementById('speech-lang').textContent = `Limbă: ${data.language}`;
         speechResult.classList.remove('hidden');
     } catch (err) {
         speechError.textContent = err.message;
@@ -129,6 +138,8 @@ speechForm.addEventListener('submit', async e => {
 
     curateLoading.classList.remove('hidden');
 
+    let curatedText = '';
+
     try {
         const res = await fetch('/api/curate', {
             method: 'POST',
@@ -138,19 +149,91 @@ speechForm.addEventListener('submit', async e => {
 
         if (!res.ok) {
             const err = await res.json();
-            throw new Error(err.detail || `Curation error (${res.status})`);
+            throw new Error(err.detail || `Eroare curare (${res.status})`);
         }
 
         const data = await res.json();
+        curatedText = data.curated;
         document.getElementById('curate-text').textContent = data.curated;
         curateResult.classList.remove('hidden');
     } catch (err) {
-        curateError.textContent = `Curation failed: ${err.message}`;
+        curateError.textContent = `Curarea a eșuat: ${err.message}`;
         curateError.classList.remove('hidden');
-    } finally {
         curateLoading.classList.add('hidden');
         submitBtn.disabled = false;
+        return;
     }
+
+    curateLoading.classList.add('hidden');
+
+    // Auto-extract SNOWTAM from curated text
+    if (!curatedText.trim()) {
+        submitBtn.disabled = false;
+        return;
+    }
+
+    snowtamLoading.classList.remove('hidden');
+
+    try {
+        const res = await fetch('/api/snowtam', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: curatedText }),
+        });
+
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || `Eroare SNOWTAM (${res.status})`);
+        }
+
+        const data = await res.json();
+        lastSnowtamHtml = data.html;
+        const iframe = document.getElementById('snowtam-preview');
+        iframe.srcdoc = data.html;
+        snowtamResult.classList.remove('hidden');
+    } catch (err) {
+        snowtamError.textContent = `Extragerea SNOWTAM a eșuat: ${err.message}`;
+        snowtamError.classList.remove('hidden');
+    } finally {
+        snowtamLoading.classList.add('hidden');
+        submitBtn.disabled = false;
+    }
+});
+
+/* ── SNOWTAM Export & Email ──────────────────────── */
+let lastSnowtamHtml = '';
+
+document.getElementById('export-and-email').addEventListener('click', async () => {
+    if (!lastSnowtamHtml) return;
+    try {
+        const res = await fetch('/api/snowtam/pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ html: lastSnowtamHtml }),
+        });
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || `Eroare PDF (${res.status})`);
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'SNOWTAM_LROD.pdf';
+        a.click();
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        snowtamError.textContent = `Export PDF eșuat: ${err.message}`;
+        snowtamError.classList.remove('hidden');
+        return;
+    }
+    const subject = encodeURIComponent('Raport SNOWTAM LROD');
+    const body = encodeURIComponent(
+        'Bună ziua,\n\n' +
+        'Vă transmit atașat formularul SNOWTAM generat.\n\n' +
+        'Cu stimă'
+    );
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
 });
 
 /* ── Template Renderer ───────────────────────────── */
@@ -168,9 +251,9 @@ function addVariableRow() {
     const row = document.createElement('div');
     row.className = 'variable-row';
     row.innerHTML = `
-        <input type="text" placeholder="Key" class="var-key">
-        <input type="text" placeholder="Value" class="var-value">
-        <button type="button" class="btn-icon remove-var" title="Remove">&times;</button>
+        <input type="text" placeholder="Cheie" class="var-key">
+        <input type="text" placeholder="Valoare" class="var-value">
+        <button type="button" class="btn-icon remove-var" title="Șterge">&times;</button>
     `;
     varContainer.appendChild(row);
 }
@@ -217,7 +300,7 @@ renderForm.addEventListener('submit', async e => {
 
         if (!res.ok) {
             const err = await res.json();
-            throw new Error(err.detail || `Server error (${res.status})`);
+            throw new Error(err.detail || `Eroare server (${res.status})`);
         }
 
         const html = await res.text();
