@@ -1,3 +1,28 @@
+/* ── Airport / Operator selection ─────────────────── */
+const airportSelect  = document.getElementById('airport-select');
+const operatorSelect = document.getElementById('operator-select');
+
+let airportsData = null;
+
+fetch('/api/airports')
+    .then(res => res.json())
+    .then(data => { airportsData = data; })
+    .catch(() => {});
+
+airportSelect.addEventListener('change', () => {
+    if (!airportsData) return;
+    const airport = airportsData[airportSelect.value];
+    if (!airport) return;
+    operatorSelect.innerHTML = '';
+    airport.operators.forEach(op => {
+        const option = document.createElement('option');
+        option.value = op.code;
+        option.textContent = `${op.name} (${op.code})`;
+        if (op.code === airport.default_operator) option.selected = true;
+        operatorSelect.appendChild(option);
+    });
+});
+
 /* ── Speech-to-Text ──────────────────────────────── */
 const speechForm   = document.getElementById('speech-form');
 const dropZone     = document.getElementById('drop-zone');
@@ -168,6 +193,8 @@ speechForm.addEventListener('submit', async e => {
                 text: curatedText,
                 speech_text: transcribedText,
                 curated_text: curatedText,
+                airport_code: airportSelect.value,
+                operator_code: operatorSelect.value,
             }),
         });
 

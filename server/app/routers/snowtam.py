@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 from app.config import settings
 from app.schemas.snowtam import SnowtamRequest, SnowtamResponse
 from app.services.db_service import save_generation
-from app.services.snowtam_service import DEFAULTS, extract_snowtam
+from app.services.snowtam_service import AIRPORTS, DEFAULTS, extract_snowtam
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -27,6 +27,22 @@ class SendEmailRequest(BaseModel):
     html: str = Field(..., min_length=1, description="SNOWTAM HTML to attach as PDF")
 
 
+@router.get(
+    "/airports",
+    summary="Get available airports and their operators",
+)
+async def airports_endpoint():
+    return {
+        code: {
+            "name": info["name"],
+            "icao": info["icao"],
+            "operators": info["operators"],
+            "default_operator": info["default_operator"],
+        }
+        for code, info in AIRPORTS.items()
+    }
+
+
 @router.post(
     "/snowtam",
     response_model=SnowtamResponse,
@@ -34,7 +50,11 @@ class SendEmailRequest(BaseModel):
 )
 async def snowtam_endpoint(request: SnowtamRequest):
     try:
-        result = await extract_snowtam(request.text)
+        result = await extract_snowtam(
+            request.text,
+            request.airport_code or None,
+            request.operator_code or None,
+        )
     except ConnectionError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except (RuntimeError, ValueError) as exc:

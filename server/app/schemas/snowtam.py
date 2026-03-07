@@ -18,6 +18,14 @@ class SnowtamRequest(BaseModel):
         max_length=50000,
         description="Curated aviation report text",
     )
+    airport_code: str = Field(
+        "",
+        description="ICAO airport code (e.g. LROD, LRTR)",
+    )
+    operator_code: str = Field(
+        "",
+        description="Operator login code",
+    )
 
 
 class SnowtamResponse(BaseModel):
