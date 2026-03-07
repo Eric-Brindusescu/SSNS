@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Distribution / packaging
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Hugging Face model cache (downloaded at runtime)
+*.bin
+*.safetensors
+
+# Byte-compiled
+*.pyc
+
+# Logs
+*.log

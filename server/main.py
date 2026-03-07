@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.dependencies import preload_model
-from app.routers import render, speech, web
+from app.routers import curate, render, speech, web
 
 logging.basicConfig(
     level=logging.INFO,
@@ -47,6 +47,7 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 
 app.include_router(speech.router, prefix="/api", tags=["Speech-to-Text"])
 app.include_router(render.router, prefix="/api", tags=["HTML Rendering"])
+app.include_router(curate.router, prefix="/api", tags=["Text Curation"])
 app.include_router(web.router, tags=["Web UI"])
 
 if __name__ == "__main__":
