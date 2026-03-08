@@ -1,5 +1,5 @@
 /* ── Weather Widget ──────────────────────────────── */
-const wxIcaoInput   = document.getElementById('icao-input');
+const wxIcaoLabel   = document.getElementById('weather-icao-label');
 const wxFetchBtn    = document.getElementById('weather-fetch');
 const wxLoading     = document.getElementById('weather-loading');
 const wxError       = document.getElementById('weather-error');
@@ -175,14 +175,9 @@ function wxRenderSource(src) {
 }
 
 async function fetchWeather() {
-    const icao = wxIcaoInput.value.trim().toUpperCase();
-    if (!icao || icao.length !== 4) {
-        wxError.textContent = 'Introduceți un cod ICAO valid (4 litere).';
-        wxError.classList.remove('hidden');
-        return;
-    }
+    const icao = document.getElementById('airport-select').value;
+    wxIcaoLabel.textContent = icao;
 
-    wxIcaoInput.value = icao;
     wxError.classList.add('hidden');
     wxResults.classList.add('hidden');
     wxLoading.classList.remove('hidden');
@@ -208,12 +203,6 @@ async function fetchWeather() {
 }
 
 wxFetchBtn.addEventListener('click', fetchWeather);
-wxIcaoInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        fetchWeather();
-    }
-});
 
 // Auto-fetch on page load
 fetchWeather();
@@ -230,17 +219,22 @@ fetch('/api/airports')
     .catch(() => {});
 
 airportSelect.addEventListener('change', () => {
-    if (!airportsData) return;
-    const airport = airportsData[airportSelect.value];
-    if (!airport) return;
-    operatorSelect.innerHTML = '';
-    airport.operators.forEach(op => {
-        const option = document.createElement('option');
-        option.value = op.code;
-        option.textContent = `${op.name} (${op.code})`;
-        if (op.code === airport.default_operator) option.selected = true;
-        operatorSelect.appendChild(option);
-    });
+    // Update operators dropdown
+    if (airportsData) {
+        const airport = airportsData[airportSelect.value];
+        if (airport) {
+            operatorSelect.innerHTML = '';
+            airport.operators.forEach(op => {
+                const option = document.createElement('option');
+                option.value = op.code;
+                option.textContent = `${op.name} (${op.code})`;
+                if (op.code === airport.default_operator) option.selected = true;
+                operatorSelect.appendChild(option);
+            });
+        }
+    }
+    // Auto-refresh weather for the newly selected airport
+    fetchWeather();
 });
 
 /* ── Navigation ───────────────────────────────────── */
