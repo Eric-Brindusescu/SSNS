@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     hotwords: list[str] = ["stare", "starea", "stare", "depunere", "polei", "zăpadă", "milimetri", "treimi", "treime", "dispecer", "dispecerat", "trun", "suprafață"]
     hotword_weight: float = 30.0
 
+    # Weather API keys (optional — can also be provided via request headers)
+    avwx_token: str | None = None
+    checkwx_api_key: str | None = None
+
     # LM Studio settings
     lm_studio_base_url: str = "http://localhost:1234/v1"
     lm_studio_model: str = "default"
