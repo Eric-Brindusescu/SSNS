@@ -1,11 +1,12 @@
 # Speech & Render Server
 
-FastAPI server providing a Romanian speech-to-text API (using `upb-nlp/ro-wav2vec2`), a Jinja2 template rendering API, and a web interface for both.
+FastAPI server providing a Romanian speech-to-text API (using `upb-nlp/ro-wav2vec2`), a Jinja2 template rendering API, aviation weather data aggregation (METAR/TAF), and a web interface.
 
 ## Features
 
 - **Speech-to-Text API** — Upload audio files (WAV, MP3, FLAC, OGG, etc.) and get Romanian transcription using wav2vec2 with LM-boosted CTC decoding
 - **Template Rendering API** — Submit text with Jinja2 `{{ variable }}` syntax and a dictionary of values, receive a rendered HTML page
+- **Aviation Weather API** — Fetch METAR and TAF data from NOAA, AVWX, and CheckWX for any ICAO airport code
 - **Web UI** — Drag-and-drop audio upload, dynamic key-value editor for template variables, live HTML preview
 
 ## Project Structure
@@ -20,10 +21,16 @@ server/
 │   ├── routers/
 │   │   ├── speech.py           # POST /api/speech-to-text
 │   │   ├── render.py           # POST /api/render-html
+│   │   ├── curate.py           # POST /api/curate
+│   │   ├── snowtam.py          # POST /api/snowtam
+│   │   ├── weather.py          # GET /api/weather, /api/metar, /api/taf
 │   │   └── web.py              # GET / (web UI)
 │   ├── services/
 │   │   ├── speech_service.py   # Audio processing & inference
-│   │   └── render_service.py   # Sandboxed Jinja2 rendering
+│   │   ├── render_service.py   # Sandboxed Jinja2 rendering
+│   │   ├── curate_service.py   # Text curation via LM Studio
+│   │   ├── snowtam_service.py  # SNOWTAM field extraction
+│   │   └── weather_service.py  # METAR/TAF from NOAA, AVWX, CheckWX
 │   ├── schemas/                # Pydantic request/response models
 │   └── templates/              # Jinja2 HTML templates
 └── static/                     # CSS and JavaScript
@@ -91,6 +98,8 @@ export APP_MODEL_NAME=upb-nlp/ro-wav2vec2   # default
 | `APP_MAX_AUDIO_DURATION_SECONDS` | `120` | Max audio length in seconds |
 | `APP_MAX_AUDIO_FILE_SIZE_MB` | `50` | Max upload size in MB |
 | `APP_CORS_ORIGINS` | `["*"]` | Allowed CORS origins |
+| `APP_AVWX_TOKEN` | *(none)* | AVWX API token (free at [avwx.rest](https://avwx.rest)) |
+| `APP_CHECKWX_API_KEY` | *(none)* | CheckWX API key (free at [checkwxapi.com](https://checkwxapi.com)) |
 
 You can also create a `.env` file in the `server/` directory with these values.
 
@@ -158,6 +167,42 @@ curl -X POST http://localhost:8000/api/render-html/preview \
 ```
 
 Returns the rendered HTML page directly (suitable for browser display or iframe embedding).
+
+### Aviation Weather
+
+Fetch METAR and TAF for any ICAO airport code. Data is aggregated from up to 3 sources concurrently.
+
+```bash
+# Full weather (METAR + TAF) — NOAA works without any API key
+curl http://localhost:8000/api/weather/LROD
+
+# METAR only
+curl http://localhost:8000/api/metar/LROD
+
+# TAF only
+curl http://localhost:8000/api/taf/LROD
+```
+
+**Response (example from NOAA):**
+
+```json
+{
+  "icao": "LROD",
+  "sources": [
+    {
+      "source": "NOAA / aviationweather.gov",
+      "station": {"name": "Oradea Intl", "icao": "LROD", "country": "RO", "...": "..."},
+      "metar": {"raw": "METAR LROD 080630Z 09004KT CAVOK 04/M02 Q1028", "wind": {"direction_deg": 90, "speed_kt": 4}, "...": "..."},
+      "taf": {"raw": "TAF LROD 080500Z 0806/0815 VRB04KT CAVOK", "...": "..."},
+      "error": null
+    },
+    {"source": "AVWX (avwx.rest)", "error": "No token. Set APP_AVWX_TOKEN in .env or pass X-AVWX-Token header."},
+    {"source": "CheckWX (checkwxapi.com)", "error": "No key. Set APP_CHECKWX_API_KEY in .env or pass X-CheckWX-Key header."}
+  ]
+}
+```
+
+AVWX and CheckWX keys can be provided via `.env` or per-request headers (`X-AVWX-Token`, `X-CheckWX-Key`).
 
 ## Architecture
 
