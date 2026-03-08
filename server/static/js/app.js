@@ -1,14 +1,25 @@
-/* ── Navigation ───────────────────────────────────── */
-document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', e => {
-        e.preventDefault();
-        const targetId = link.dataset.target;
+/* ── Airport / Operator selection ─────────────────── */
+const airportSelect  = document.getElementById('airport-select');
+const operatorSelect = document.getElementById('operator-select');
 
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
+let airportsData = null;
 
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById(targetId).classList.add('active');
+fetch('/api/airports')
+    .then(res => res.json())
+    .then(data => { airportsData = data; })
+    .catch(() => {});
+
+airportSelect.addEventListener('change', () => {
+    if (!airportsData) return;
+    const airport = airportsData[airportSelect.value];
+    if (!airport) return;
+    operatorSelect.innerHTML = '';
+    airport.operators.forEach(op => {
+        const option = document.createElement('option');
+        option.value = op.code;
+        option.textContent = `${op.name} (${op.code})`;
+        if (op.code === airport.default_operator) option.selected = true;
+        operatorSelect.appendChild(option);
     });
 });
 
@@ -178,7 +189,13 @@ speechForm.addEventListener('submit', async e => {
         const res = await fetch('/api/snowtam', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: curatedText }),
+            body: JSON.stringify({
+                text: curatedText,
+                speech_text: transcribedText,
+                curated_text: curatedText,
+                airport_code: airportSelect.value,
+                operator_code: operatorSelect.value,
+            }),
         });
 
         if (!res.ok) {
@@ -202,8 +219,9 @@ speechForm.addEventListener('submit', async e => {
 
 /* ── SNOWTAM Export & Email ──────────────────────── */
 let lastSnowtamHtml = '';
+const emailStatus = document.getElementById('email-status');
 
-document.getElementById('export-and-email').addEventListener('click', async () => {
+document.getElementById('export-pdf').addEventListener('click', async () => {
     if (!lastSnowtamHtml) return;
     try {
         const res = await fetch('/api/snowtam/pdf', {
@@ -225,15 +243,45 @@ document.getElementById('export-and-email').addEventListener('click', async () =
     } catch (err) {
         snowtamError.textContent = `Export PDF eșuat: ${err.message}`;
         snowtamError.classList.remove('hidden');
+    }
+});
+
+document.getElementById('send-email').addEventListener('click', async () => {
+    if (!lastSnowtamHtml) return;
+    const emailTo = document.getElementById('email-to').value.trim();
+    if (!emailTo) {
+        emailStatus.textContent = 'Introduceți adresa email a destinatarului.';
+        emailStatus.className = 'error';
+        emailStatus.classList.remove('hidden');
         return;
     }
-    const subject = encodeURIComponent('Raport SNOWTAM LROD');
-    const body = encodeURIComponent(
-        'Bună ziua,\n\n' +
-        'Vă transmit atașat formularul SNOWTAM generat.\n\n' +
-        'Cu stimă'
-    );
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+
+    const sendBtn = document.getElementById('send-email');
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'Se trimite...';
+    emailStatus.classList.add('hidden');
+
+    try {
+        const res = await fetch('/api/snowtam/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to: emailTo, html: lastSnowtamHtml }),
+        });
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || `Eroare trimitere (${res.status})`);
+        }
+        emailStatus.textContent = `Email trimis cu succes către ${emailTo}!`;
+        emailStatus.className = 'success';
+        emailStatus.classList.remove('hidden');
+    } catch (err) {
+        emailStatus.textContent = `Trimitere eșuată: ${err.message}`;
+        emailStatus.className = 'error';
+        emailStatus.classList.remove('hidden');
+    } finally {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '&#9993; Trimite pe Email';
+    }
 });
 
 /* ── Template Renderer ───────────────────────────── */

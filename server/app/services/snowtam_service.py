@@ -94,16 +94,39 @@ VAR = {
 
 DEFAULTS = {k: v["default"] for k, v in VAR.items()}
 
-# ── Airport config ────────────────────────────────────────────────────
-AIRPORT = "LROD"
-LOGIN = "OPS01"
+# ── Airport & Operator config ─────────────────────────────────────────
+AIRPORTS = {
+    "LROD": {
+        "name": "Oradea",
+        "icao": "LROD",
+        "runway": "09",
+        "operators": [
+            {"code": "OPS01", "name": "Dispecer LROD 1", "originator": "LROD/OPS01"},
+            {"code": "OPS02", "name": "Dispecer LROD 2", "originator": "LROD/OPS02"},
+        ],
+        "default_operator": "OPS01",
+    },
+    "LRTR": {
+        "name": "Timișoara",
+        "icao": "LRTR",
+        "runway": "11",
+        "operators": [
+            {"code": "OPS01", "name": "Dispecer LRTR 1", "originator": "LRTR/OPS01"},
+            {"code": "OPS02", "name": "Dispecer LRTR 2", "originator": "LRTR/OPS02"},
+            {"code": "OPS03", "name": "Dispecer LRTR 3", "originator": "LRTR/OPS03"},
+        ],
+        "default_operator": "OPS01",
+    },
+}
+
+DEFAULT_AIRPORT = "LROD"
 _serial_counter = 0
 
 
-def _next_serial() -> str:
+def _next_serial(icao: str) -> str:
     global _serial_counter
     _serial_counter += 1
-    return f"SW{AIRPORT}{_serial_counter:04d}"
+    return f"SW{icao}{_serial_counter:04d}"
 
 
 # ── Prompt builder ────────────────────────────────────────────────────
@@ -203,14 +226,26 @@ def _validate_and_fill(dtc: dict) -> dict:
     return dtc
 
 
-def _add_standard_values(dtc: dict) -> dict:
+def _add_standard_values(
+    dtc: dict,
+    airport_code: str | None = None,
+    operator_code: str | None = None,
+) -> dict:
+    airport = AIRPORTS.get(airport_code or DEFAULT_AIRPORT, AIRPORTS[DEFAULT_AIRPORT])
+    icao = airport["icao"]
+    op_code = operator_code or airport["default_operator"]
+    operator = next(
+        (op for op in airport["operators"] if op["code"] == op_code),
+        airport["operators"][0],
+    )
     now = datetime.now(timezone.utc)
-    dtc["serial_number"] = _next_serial()
-    dtc["location_indicator"] = f"{AIRPORT} {now.strftime('%d%H%M')}"
-    dtc["aerodrome_location_indicator"] = AIRPORT
+    dtc["serial_number"] = _next_serial(icao)
+    dtc["location_indicator"] = f"{icao} {now.strftime('%d%H%M')}"
+    dtc["aerodrome_location_indicator"] = icao
+    dtc["lower_runway_designation_number"] = airport["runway"]
     dtc["datetime_of_assessment"] = now.strftime("%m%d%H%MZ")
     dtc["datetime_of_assessment_readable"] = now.strftime("%Y-%m-%d %H:%M UTC")
-    dtc["originator"] = f"{AIRPORT}/{LOGIN}"
+    dtc["originator"] = operator["originator"]
     return dtc
 
 
@@ -246,7 +281,11 @@ def _fill_template(dtc: dict) -> str:
 
 # ── Public API ────────────────────────────────────────────────────────
 
-async def extract_snowtam(text: str) -> dict:
+async def extract_snowtam(
+    text: str,
+    airport_code: str | None = None,
+    operator_code: str | None = None,
+) -> dict:
     """
     Full SNOWTAM pipeline: text -> LLM extraction -> standard values -> DTC dict + HTML.
     """
@@ -260,7 +299,7 @@ async def extract_snowtam(text: str) -> dict:
         dtc = _parse_response(raw)
         dtc = _validate_and_fill(dtc)
 
-    dtc = _add_standard_values(dtc)
+    dtc = _add_standard_values(dtc, airport_code, operator_code)
     html = _fill_template(dtc)
 
     return {"dtc": dtc, "html": html}

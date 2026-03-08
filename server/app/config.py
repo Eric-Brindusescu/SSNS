@@ -26,6 +26,13 @@ class Settings(BaseSettings):
     lm_studio_temperature: float = 0.3
     lm_studio_max_tokens: int = 2048
 
+    # SMTP settings for email
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""  # Use an app-specific password for Gmail
+    smtp_from: str = ""
+
     model_config = {"env_file": ".env", "env_prefix": "APP_"}
 
 

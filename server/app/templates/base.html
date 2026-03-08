@@ -10,11 +10,15 @@
     <header>
         <div class="header-inner">
             <h1>Completare Automata Bază Snowtam LROD</h1>
+            <nav>
+                <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">Generare</a>
+                <a href="/history" class="nav-link {% if request.url.path.startswith('/history') %}active{% endif %}">Istoric</a>
+            </nav>
         </div>
     </header>
     <main>
         {% block content %}{% endblock %}
     </main>
-    <script src="/static/js/app.js"></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>
