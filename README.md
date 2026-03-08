@@ -1,4 +1,4 @@
-# 🛬 RunwayGuard — Live Runway Condition Monitor
+# RunwayGuard — Live Runway Condition Monitor
 
 Real-time runway grip prediction system built for **HackTech Airport Chapter 2026**.
 
@@ -119,12 +119,12 @@ Switch scenarios in real time using the buttons in the UI:
 
 | Scenario | Conditions | Expected RCC |
 |----------|-----------|--------------|
-| ☀️ Clear | Dry, 18–30°C | 6 |
-| 🌧 Light Rain | Rain, water ≤ 3mm | 5 |
-| ⛈ Heavy Rain | Rain, standing water | 3 |
-| 🌨 Snow | Snowfall, -5 to 0°C | 3–4 |
-| ❄️ Freezing Rain | Freezing rain, -3 to 1°C | 2 |
-| 🧊 Black Ice | Ice, -10 to -2°C | 1 |
+| Clear | Dry, 18–30°C | 6 |
+| Light Rain | Rain, water ≤ 3mm | 5 |
+| Heavy Rain | Rain, standing water | 3 |
+| Snow | Snowfall, -5 to 0°C | 3–4 |
+| Freezing Rain | Freezing rain, -3 to 1°C | 2 |
+| Black Ice | Ice, -10 to -2°C | 1 |
 
 ---
 
