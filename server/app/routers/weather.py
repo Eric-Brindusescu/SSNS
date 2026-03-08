@@ -4,7 +4,6 @@ import re
 
 from fastapi import APIRouter, HTTPException, Header
 
-from app.schemas.weather import SourceWeather, WeatherResponse
 from app.services.weather_service import (
     fetch_all_metar,
     fetch_all_taf,
@@ -29,7 +28,6 @@ def _validate_icao(icao: str) -> str:
 
 @router.get(
     "/weather/{icao}",
-    response_model=WeatherResponse,
     summary="Fetch METAR and TAF from all sources",
 )
 async def weather_endpoint(
@@ -48,15 +46,11 @@ async def weather_endpoint(
             status_code=500, detail=f"Weather fetch failed: {exc}"
         ) from exc
 
-    return WeatherResponse(
-        icao=icao,
-        sources=[SourceWeather(**r) for r in results],
-    )
+    return {"icao": icao, "sources": results}
 
 
 @router.get(
     "/metar/{icao}",
-    response_model=WeatherResponse,
     summary="Fetch METAR only from all sources",
 )
 async def metar_endpoint(
@@ -75,15 +69,11 @@ async def metar_endpoint(
             status_code=500, detail=f"METAR fetch failed: {exc}"
         ) from exc
 
-    return WeatherResponse(
-        icao=icao,
-        sources=[SourceWeather(**r) for r in results],
-    )
+    return {"icao": icao, "sources": results}
 
 
 @router.get(
     "/taf/{icao}",
-    response_model=WeatherResponse,
     summary="Fetch TAF only from all sources",
 )
 async def taf_endpoint(
@@ -102,7 +92,4 @@ async def taf_endpoint(
             status_code=500, detail=f"TAF fetch failed: {exc}"
         ) from exc
 
-    return WeatherResponse(
-        icao=icao,
-        sources=[SourceWeather(**r) for r in results],
-    )
+    return {"icao": icao, "sources": results}
