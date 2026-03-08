@@ -28,7 +28,17 @@ class SnowtamRequest(BaseModel):
     )
 
 
+class ValidationWarning(BaseModel):
+    level: str = Field(..., description="Warning level: 'warning' or 'info'")
+    code: str = Field(..., description="Machine-readable warning code")
+    message: str = Field(..., description="Human-readable warning message")
+
+
 class SnowtamResponse(BaseModel):
     dtc: dict = Field(..., description="Extracted SNOWTAM data dictionary")
     html: str = Field(..., description="Filled SNOWTAM HTML form")
     generation_id: int = Field(..., description="Database record ID")
+    validation_warnings: list[ValidationWarning] = Field(
+        default_factory=list,
+        description="Consistency warnings from validation",
+    )

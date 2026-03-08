@@ -11,8 +11,9 @@ from pydantic import BaseModel, Field
 
 from app.config import settings
 from app.schemas.snowtam import SnowtamRequest, SnowtamResponse
-from app.services.db_service import save_generation
+from app.services.db_service import get_latest_generation, save_generation
 from app.services.snowtam_service import AIRPORTS, DEFAULTS, extract_snowtam
+from app.services.validation_service import validate_snowtam
 from app.services.weather_service import fetch_all_weather
 
 logger = logging.getLogger(__name__)
@@ -73,6 +74,19 @@ async def snowtam_endpoint(request: SnowtamRequest):
     except Exception:
         logger.warning("Failed to fetch weather for %s during generation", icao)
 
+    # Validate against historical data and weather
+    previous_gen = None
+    try:
+        previous_gen = get_latest_generation(icao)
+    except Exception:
+        logger.warning("Failed to fetch previous generation for validation")
+
+    validation_warnings = validate_snowtam(
+        new_params=result["dtc"],
+        previous_gen=previous_gen,
+        current_weather=weather_data,
+    )
+
     generation_id = save_generation(
         airport_code=icao,
         operator_code=request.operator_code or "OPS01",
@@ -88,6 +102,7 @@ async def snowtam_endpoint(request: SnowtamRequest):
         dtc=result["dtc"],
         html=result["html"],
         generation_id=generation_id,
+        validation_warnings=validation_warnings,
     )
 
 

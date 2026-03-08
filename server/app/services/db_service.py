@@ -104,6 +104,24 @@ def get_all_generations(
     return [dict(row) for row in rows]
 
 
+def get_latest_generation(airport_code: str) -> dict | None:
+    """Return the most recent generation for a given airport, or None."""
+    conn = _get_connection()
+    row = conn.execute(
+        "SELECT * FROM generations WHERE airport_code = ? ORDER BY id DESC LIMIT 1",
+        (airport_code,),
+    ).fetchone()
+    conn.close()
+    if row is None:
+        return None
+    result = dict(row)
+    result["default_parameters"] = json.loads(result["default_parameters"])
+    result["extracted_parameters"] = json.loads(result["extracted_parameters"])
+    if result.get("weather_data"):
+        result["weather_data"] = json.loads(result["weather_data"])
+    return result
+
+
 def get_generation(generation_id: int) -> dict | None:
     """Return a single generation by id, or None if not found."""
     conn = _get_connection()

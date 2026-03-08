@@ -297,6 +297,7 @@ clearFileBtn.addEventListener('click', () => {
     curateError.classList.add('hidden');
     snowtamResult.classList.add('hidden');
     snowtamError.classList.add('hidden');
+    document.getElementById('validation-warnings').classList.add('hidden');
 });
 
 // Curate elements
@@ -320,6 +321,7 @@ speechForm.addEventListener('submit', async e => {
     curateError.classList.add('hidden');
     snowtamResult.classList.add('hidden');
     snowtamError.classList.add('hidden');
+    document.getElementById('validation-warnings').classList.add('hidden');
     speechLoading.classList.remove('hidden');
     submitBtn.disabled = true;
 
@@ -422,6 +424,19 @@ speechForm.addEventListener('submit', async e => {
         const iframe = document.getElementById('snowtam-preview');
         iframe.srcdoc = data.html;
         snowtamResult.classList.remove('hidden');
+
+        // Show validation warnings
+        const warningsContainer = document.getElementById('validation-warnings');
+        if (data.validation_warnings && data.validation_warnings.length > 0) {
+            warningsContainer.innerHTML = data.validation_warnings.map(w => {
+                const cls = w.level === 'warning' ? 'validation-warning' : 'validation-info';
+                const icon = w.level === 'warning' ? '&#9888;' : '&#8505;';
+                return `<div class="validation-item ${cls}">${icon} ${w.message}</div>`;
+            }).join('');
+            warningsContainer.classList.remove('hidden');
+        } else {
+            warningsContainer.classList.add('hidden');
+        }
     } catch (err) {
         snowtamError.textContent = `Extragerea SNOWTAM a eșuat: ${err.message}`;
         snowtamError.classList.remove('hidden');
