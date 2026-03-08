@@ -724,14 +724,15 @@ input[type="text"]:focus,
     margin-bottom: 1rem;
 }
 
-.icao-input {
-    width: 90px;
-    text-transform: uppercase;
+.weather-icao-label {
     font-family: var(--mono);
     font-weight: 700;
     font-size: 1rem;
-    text-align: center;
     letter-spacing: 0.1em;
+    color: var(--primary);
+    padding: 0.5rem 0.75rem;
+    background: var(--primary-light);
+    border-radius: var(--radius-sm);
 }
 
 .weather-fetch-btn {
