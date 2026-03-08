@@ -1,3 +1,223 @@
+/* ── Weather Widget ──────────────────────────────── */
+const wxIcaoInput   = document.getElementById('icao-input');
+const wxFetchBtn    = document.getElementById('weather-fetch');
+const wxLoading     = document.getElementById('weather-loading');
+const wxError       = document.getElementById('weather-error');
+const wxResults     = document.getElementById('weather-results');
+
+function wxVal(v) {
+    if (v === null || v === undefined || v === '') return '—';
+    return v;
+}
+
+function wxWind(w) {
+    if (!w) return '—';
+    const dir = wxVal(w.direction_deg || w.wind_dir_deg);
+    const spd = wxVal(w.speed_kt || w.wind_speed_kt);
+    const gust = w.gust_kt || w.wind_gust_kt;
+    let s = `${dir}° / ${spd} kt`;
+    if (gust) s += ` G${gust}`;
+    return s;
+}
+
+function wxVis(m) {
+    if (!m) return '—';
+    if (m.visibility_sm) return `${m.visibility_sm} SM`;
+    if (m.visibility) {
+        const v = m.visibility;
+        if (v.miles) return `${v.miles} mi`;
+        if (v.meters) return `${v.meters} m`;
+        if (v.value) return `${v.value} ${v.unit || ''}`;
+    }
+    return '—';
+}
+
+function wxClouds(clouds) {
+    if (!clouds || clouds.length === 0) return '—';
+    return clouds.map(c => {
+        const cover = c.cover || c.type || c.code || '';
+        const base = c.base_ft || c.altitude_ft || '';
+        return base ? `${cover} ${base} ft` : cover;
+    }).join(', ');
+}
+
+function wxFlightCat(m) {
+    const cat = (m.flight_category || m.flight_rules || '').toUpperCase();
+    if (!cat) return '';
+    const cls = {
+        'VFR': 'flight-cat-vfr',
+        'MVFR': 'flight-cat-mvfr',
+        'IFR': 'flight-cat-ifr',
+        'LIFR': 'flight-cat-lifr',
+    }[cat] || '';
+    return `<span class="flight-cat ${cls}">${cat}</span>`;
+}
+
+function wxRenderMetar(metar) {
+    if (!metar || metar.error) {
+        return `<div class="wx-source-error">${metar ? metar.error : 'Nu sunt date METAR'}</div>`;
+    }
+    return `
+        <div class="wx-section">
+            <div class="wx-section-title">METAR ${wxFlightCat(metar)}</div>
+            ${metar.raw ? `<div class="wx-raw">${metar.raw}</div>` : ''}
+            <div class="wx-fields">
+                <div class="wx-field">
+                    <span class="wx-field-label">V&acirc;nt</span>
+                    <span class="wx-field-value">${wxWind(metar.wind || metar)}</span>
+                </div>
+                <div class="wx-field">
+                    <span class="wx-field-label">Vizibilitate</span>
+                    <span class="wx-field-value">${wxVis(metar)}</span>
+                </div>
+                <div class="wx-field">
+                    <span class="wx-field-label">Temperatur&#259;</span>
+                    <span class="wx-field-value">${wxVal(metar.temperature_c)}°C</span>
+                </div>
+                <div class="wx-field">
+                    <span class="wx-field-label">Punct de rou&#259;</span>
+                    <span class="wx-field-value">${wxVal(metar.dewpoint_c)}°C</span>
+                </div>
+                <div class="wx-field">
+                    <span class="wx-field-label">QNH</span>
+                    <span class="wx-field-value">${wxVal(metar.altimeter_hpa || (metar.altimeter && metar.altimeter.hpa) || (metar.altimeter && metar.altimeter.value))} hPa</span>
+                </div>
+                <div class="wx-field">
+                    <span class="wx-field-label">Nori</span>
+                    <span class="wx-field-value">${wxClouds(metar.clouds)}</span>
+                </div>
+            </div>
+        </div>`;
+}
+
+function wxFormatTime(t) {
+    if (!t) return '—';
+    if (typeof t === 'number') {
+        const d = new Date(t * 1000);
+        return d.toISOString().slice(5, 16).replace('T', ' ') + 'Z';
+    }
+    if (typeof t === 'string' && t.length > 16) {
+        return t.slice(5, 16).replace('T', ' ') + 'Z';
+    }
+    return t;
+}
+
+function wxRenderTaf(taf) {
+    if (!taf || taf.error) {
+        return `<div class="wx-source-error">${taf ? taf.error : 'Nu sunt date TAF'}</div>`;
+    }
+    const validFrom = wxFormatTime(taf.valid_from || taf.start_time);
+    const validTo = wxFormatTime(taf.valid_to || taf.end_time);
+    const forecasts = taf.forecasts || [];
+
+    let forecastsHtml = '';
+    if (forecasts.length > 0) {
+        forecastsHtml = '<div class="wx-forecasts">' + forecasts.map(f => {
+            const from = wxFormatTime(f.from || f.start_time);
+            const to = wxFormatTime(f.to || f.end_time);
+            const change = f.change_indicator ? `<span class="wx-forecast-change">${f.change_indicator}</span>` : '';
+            const wind = wxWind(f.wind || f);
+            const vis = f.visibility_sm || f.visibility_miles || (f.visibility && (f.visibility.value || f.visibility.miles)) || '';
+            const wx = (f.wx_string || (f.wx_codes && f.wx_codes.length > 0 && f.wx_codes.join(' '))) || '';
+            let details = `V&acirc;nt: ${wind}`;
+            if (vis) details += ` | Vizib: ${vis}`;
+            if (wx) details += ` | ${wx}`;
+            return `<div class="wx-forecast-row">
+                ${change}
+                <span class="wx-forecast-time">${from} → ${to}</span>
+                <span class="wx-forecast-detail">${details}</span>
+            </div>`;
+        }).join('') + '</div>';
+    }
+
+    return `
+        <div class="wx-section">
+            <div class="wx-section-title">TAF</div>
+            ${taf.raw ? `<div class="wx-raw">${taf.raw}</div>` : ''}
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.4rem;">
+                Valabil: ${validFrom} → ${validTo}
+            </div>
+            ${forecastsHtml}
+        </div>`;
+}
+
+function wxRenderSource(src) {
+    if (src.error && !src.metar && !src.taf) {
+        return `
+            <div class="wx-source-card">
+                <div class="wx-source-header" onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.wx-source-toggle').classList.toggle('open')">
+                    <span class="wx-source-name">${src.source}</span>
+                    <span class="wx-source-toggle">&#9660;</span>
+                </div>
+                <div class="wx-source-error">${src.error}</div>
+            </div>`;
+    }
+
+    const stationHtml = src.station ? `
+        <div class="wx-station">
+            ${src.station.name || src.station.icao || ''} &mdash;
+            ${src.station.country || ''} ${src.station.city || ''}
+            ${src.station.elevation_m != null ? ` | Elev: ${src.station.elevation_m} m` : ''}
+        </div>` : '';
+
+    return `
+        <div class="wx-source-card">
+            <div class="wx-source-header" onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.wx-source-toggle').classList.toggle('open')">
+                <span class="wx-source-name">${src.source}</span>
+                <span class="wx-source-toggle open">&#9660;</span>
+            </div>
+            <div class="wx-source-body">
+                ${stationHtml}
+                ${wxRenderMetar(src.metar)}
+                ${wxRenderTaf(src.taf)}
+            </div>
+        </div>`;
+}
+
+async function fetchWeather() {
+    const icao = wxIcaoInput.value.trim().toUpperCase();
+    if (!icao || icao.length !== 4) {
+        wxError.textContent = 'Introduceți un cod ICAO valid (4 litere).';
+        wxError.classList.remove('hidden');
+        return;
+    }
+
+    wxIcaoInput.value = icao;
+    wxError.classList.add('hidden');
+    wxResults.classList.add('hidden');
+    wxLoading.classList.remove('hidden');
+    wxFetchBtn.disabled = true;
+
+    try {
+        const res = await fetch(`/api/weather/${icao}`);
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || `Eroare server (${res.status})`);
+        }
+        const data = await res.json();
+
+        wxResults.innerHTML = data.sources.map(wxRenderSource).join('');
+        wxResults.classList.remove('hidden');
+    } catch (err) {
+        wxError.textContent = `Eroare meteo: ${err.message}`;
+        wxError.classList.remove('hidden');
+    } finally {
+        wxLoading.classList.add('hidden');
+        wxFetchBtn.disabled = false;
+    }
+}
+
+wxFetchBtn.addEventListener('click', fetchWeather);
+wxIcaoInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        fetchWeather();
+    }
+});
+
+// Auto-fetch on page load
+fetchWeather();
+
 /* ── Airport / Operator selection ─────────────────── */
 const airportSelect  = document.getElementById('airport-select');
 const operatorSelect = document.getElementById('operator-select');
@@ -20,6 +240,20 @@ airportSelect.addEventListener('change', () => {
         option.textContent = `${op.name} (${op.code})`;
         if (op.code === airport.default_operator) option.selected = true;
         operatorSelect.appendChild(option);
+    });
+});
+
+/* ── Navigation ───────────────────────────────────── */
+document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', e => {
+        e.preventDefault();
+        const targetId = link.dataset.target;
+
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById(targetId).classList.add('active');
     });
 });
 

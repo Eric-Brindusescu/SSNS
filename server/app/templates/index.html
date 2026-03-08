@@ -1,147 +1,182 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Secțiunea Speech-to-Text -->
-<section id="speech-section" class="section active">
-    <div class="card">
-        <div class="card-header">
-            <h2>Generare Automata Raport Aviatie</h2>
-            <span class="badge">Powered by Romanian &middot; UPB / wav2vec2</span>
-        </div>
-        <div class="card-body">
-            <form id="speech-form">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="airport-select">Aeroport</label>
-                        <select id="airport-select" class="form-select">
-                            <option value="LROD" selected>Oradea (LROD)</option>
-                            <option value="LRTR">Timișoara (LRTR)</option>
-                        </select>
+<div class="main-layout">
+    <!-- Coloana stanga — Generare Raport -->
+    <div class="col-left">
+        <!-- Sectiunea Speech-to-Text -->
+        <section id="speech-section" class="section active">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Generare Automata Raport Aviatie</h2>
+                    <span class="badge">Powered by Romanian &middot; UPB / wav2vec2</span>
+                </div>
+                <div class="card-body">
+                    <form id="speech-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="airport-select">Aeroport</label>
+                                <select id="airport-select" class="form-select">
+                                    <option value="LROD" selected>Oradea (LROD)</option>
+                                    <option value="LRTR">Timișoara (LRTR)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="operator-select">Operator</label>
+                                <select id="operator-select" class="form-select">
+                                    <option value="OPS01" selected>Dispecer LROD 1 (OPS01)</option>
+                                    <option value="OPS02">Dispecer LROD 2 (OPS02)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="upload-area" id="drop-zone">
+                            <div class="upload-icon">&#127908;</div>
+                            <p class="upload-text">Trage &amp; plaseaz&#259; un fi&#537;ier audio aici</p>
+                            <p class="upload-hint">sau apas&#259; pentru a selecta &middot; WAV, MP3, FLAC, OGG</p>
+                            <input type="file" id="audio-file" name="file"
+                                   accept=".wav,.mp3,.flac,.ogg,.opus,.webm,.m4a,.mp4,.wma"
+                                   required hidden>
+                        </div>
+                        <div id="file-info" class="file-info hidden">
+                            <span id="file-name"></span>
+                            <button type="button" id="clear-file" class="btn-icon" title="&#536;terge fi&#537;ier">&times;</button>
+                        </div>
+                        <button type="submit" id="speech-submit" class="btn btn-primary" disabled>
+                            Genereaza Raport
+                        </button>
+                    </form>
+
+                    <div id="speech-loading" class="loading hidden">
+                        <div class="spinner"></div>
+                        <p>Se transcrie audio&hellip;</p>
                     </div>
-                    <div class="form-group">
-                        <label for="operator-select">Operator</label>
-                        <select id="operator-select" class="form-select">
-                            <option value="OPS01" selected>Dispecer LROD 1 (OPS01)</option>
-                            <option value="OPS02">Dispecer LROD 2 (OPS02)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="upload-area" id="drop-zone">
-                    <div class="upload-icon">&#127908;</div>
-                    <p class="upload-text">Trage &amp; plaseaz&#259; un fi&#537;ier audio aici</p>
-                    <p class="upload-hint">sau apas&#259; pentru a selecta &middot; WAV, MP3, FLAC, OGG</p>
-                    <input type="file" id="audio-file" name="file"
-                           accept=".wav,.mp3,.flac,.ogg,.opus,.webm,.m4a,.mp4,.wma"
-                           required hidden>
-                </div>
-                <div id="file-info" class="file-info hidden">
-                    <span id="file-name"></span>
-                    <button type="button" id="clear-file" class="btn-icon" title="&#536;terge fi&#537;ier">&times;</button>
-                </div>
-                <button type="submit" id="speech-submit" class="btn btn-primary" disabled>
-                    Genereaza Raport
-                </button>
-            </form>
 
-            <div id="speech-loading" class="loading hidden">
-                <div class="spinner"></div>
-                <p>Se transcrie audio&hellip;</p>
-            </div>
-
-            <div id="speech-result" class="result hidden">
-                <h3>Transcriere Brut&#259;</h3>
-                <div id="speech-text" class="result-text"></div>
-                <div class="result-meta">
-                    <span id="speech-duration"></span>
-                    <span id="speech-lang"></span>
-                </div>
-            </div>
-
-            <div id="curate-loading" class="loading hidden">
-                <div class="spinner"></div>
-                <p>Se cureaz&#259; raportul de avia&#539;ie&hellip;</p>
-            </div>
-
-            <div id="curate-result" class="result result-curated hidden">
-                <h3>Raport Avia&#539;ie Curat</h3>
-                <div id="curate-text" class="result-text"></div>
-            </div>
-
-            <div id="curate-error" class="error hidden"></div>
-
-            <div id="snowtam-loading" class="loading hidden">
-                <div class="spinner"></div>
-                <p>Se extrag c&#226;mpurile SNOWTAM&hellip;</p>
-            </div>
-
-            <div id="snowtam-result" class="result result-snowtam hidden">
-                <h3>Formular SNOWTAM</h3>
-                <iframe id="snowtam-preview" sandbox="allow-same-origin"></iframe>
-                <div class="snowtam-actions">
-                    <button type="button" id="export-pdf" class="btn btn-action btn-pdf">
-                        &#128196; Descarc&#259; PDF
-                    </button>
-                </div>
-                <div class="snowtam-email-form">
-                    <input type="email" id="email-to" placeholder="Adresa email destinatar" class="email-input">
-                    <button type="button" id="send-email" class="btn btn-action btn-email">
-                        &#9993; Trimite pe Email
-                    </button>
-                </div>
-                <div id="email-status" class="hidden"></div>
-            </div>
-
-            <div id="snowtam-error" class="error hidden"></div>
-
-            <div id="speech-error" class="error hidden"></div>
-        </div>
-    </div>
-</section>
-
-<!-- Secțiunea Randare Șablon -->
-<section id="render-section" class="section">
-    <div class="card">
-        <div class="card-header">
-            <h2>Randare &#536;ablon</h2>
-            <span class="badge">Jinja2 &middot; HTML</span>
-        </div>
-        <div class="card-body">
-            <form id="render-form">
-                <div class="form-group">
-                    <label for="render-text">Con&#539;inut Text</label>
-                    <textarea id="render-text" name="text" rows="6"
-                              placeholder="Introdu textul aici. Folosește {{ variable_name }} pentru variabile de șablon."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Variabile &#536;ablon</label>
-                    <div id="variables-container">
-                        <div class="variable-row">
-                            <input type="text" placeholder="Cheie" class="var-key">
-                            <input type="text" placeholder="Valoare" class="var-value">
-                            <button type="button" class="btn-icon remove-var" title="&#536;terge">&times;</button>
+                    <div id="speech-result" class="result hidden">
+                        <h3>Transcriere Brut&#259;</h3>
+                        <div id="speech-text" class="result-text"></div>
+                        <div class="result-meta">
+                            <span id="speech-duration"></span>
+                            <span id="speech-lang"></span>
                         </div>
                     </div>
-                    <button type="button" id="add-variable" class="btn btn-sm">+ Adaug&#259; Variabil&#259;</button>
+
+                    <div id="curate-loading" class="loading hidden">
+                        <div class="spinner"></div>
+                        <p>Se cureaz&#259; raportul de avia&#539;ie&hellip;</p>
+                    </div>
+
+                    <div id="curate-result" class="result result-curated hidden">
+                        <h3>Raport Avia&#539;ie Curat</h3>
+                        <div id="curate-text" class="result-text"></div>
+                    </div>
+
+                    <div id="curate-error" class="error hidden"></div>
+
+                    <div id="snowtam-loading" class="loading hidden">
+                        <div class="spinner"></div>
+                        <p>Se extrag c&#226;mpurile SNOWTAM&hellip;</p>
+                    </div>
+
+                    <div id="snowtam-result" class="result result-snowtam hidden">
+                        <h3>Formular SNOWTAM</h3>
+                        <iframe id="snowtam-preview" sandbox="allow-same-origin"></iframe>
+                        <div class="snowtam-actions">
+                            <button type="button" id="export-pdf" class="btn btn-action btn-pdf">
+                                &#128196; Descarc&#259; PDF
+                            </button>
+                        </div>
+                        <div class="snowtam-email-form">
+                            <input type="email" id="email-to" placeholder="Adresa email destinatar" class="email-input">
+                            <button type="button" id="send-email" class="btn btn-action btn-email">
+                                &#9993; Trimite pe Email
+                            </button>
+                        </div>
+                        <div id="email-status" class="hidden"></div>
+                    </div>
+
+                    <div id="snowtam-error" class="error hidden"></div>
+
+                    <div id="speech-error" class="error hidden"></div>
                 </div>
-
-                <button type="submit" class="btn btn-primary">Randeaz&#259; HTML</button>
-            </form>
-
-            <div id="render-loading" class="loading hidden">
-                <div class="spinner"></div>
-                <p>Se randeaz&#259;&hellip;</p>
             </div>
+        </section>
 
-            <div id="render-result" class="result hidden">
-                <h3>Previzualizare</h3>
-                <iframe id="render-preview" sandbox="allow-same-origin"></iframe>
+        <!-- Sectiunea Randare Sablon -->
+        <section id="render-section" class="section">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Randare &#536;ablon</h2>
+                    <span class="badge">Jinja2 &middot; HTML</span>
+                </div>
+                <div class="card-body">
+                    <form id="render-form">
+                        <div class="form-group">
+                            <label for="render-text">Con&#539;inut Text</label>
+                            <textarea id="render-text" name="text" rows="6"
+                                      placeholder="Introdu textul aici. Folosește {{ variable_name }} pentru variabile de șablon."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Variabile &#536;ablon</label>
+                            <div id="variables-container">
+                                <div class="variable-row">
+                                    <input type="text" placeholder="Cheie" class="var-key">
+                                    <input type="text" placeholder="Valoare" class="var-value">
+                                    <button type="button" class="btn-icon remove-var" title="&#536;terge">&times;</button>
+                                </div>
+                            </div>
+                            <button type="button" id="add-variable" class="btn btn-sm">+ Adaug&#259; Variabil&#259;</button>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Randeaz&#259; HTML</button>
+                    </form>
+
+                    <div id="render-loading" class="loading hidden">
+                        <div class="spinner"></div>
+                        <p>Se randeaz&#259;&hellip;</p>
+                    </div>
+
+                    <div id="render-result" class="result hidden">
+                        <h3>Previzualizare</h3>
+                        <iframe id="render-preview" sandbox="allow-same-origin"></iframe>
+                    </div>
+
+                    <div id="render-error" class="error hidden"></div>
+                </div>
             </div>
-
-            <div id="render-error" class="error hidden"></div>
-        </div>
+        </section>
     </div>
-</section>
+
+    <!-- Coloana dreapta — Date Meteo -->
+    <div class="col-right">
+        <section id="weather-widget" class="weather-widget">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Date Meteo Aeroport</h2>
+                    <span class="badge">METAR &middot; TAF</span>
+                </div>
+                <div class="card-body">
+                    <div class="weather-input-row">
+                        <input type="text" id="icao-input" value="LROD" placeholder="Cod ICAO"
+                               maxlength="4" class="icao-input" spellcheck="false" autocomplete="off">
+                        <button type="button" id="weather-fetch" class="btn btn-primary weather-fetch-btn">
+                            Actualizeaz&#259;
+                        </button>
+                    </div>
+
+                    <div id="weather-loading" class="loading hidden">
+                        <div class="spinner"></div>
+                        <p>Se preiau datele meteo&hellip;</p>
+                    </div>
+
+                    <div id="weather-error" class="error hidden"></div>
+
+                    <div id="weather-results" class="weather-sources hidden"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
