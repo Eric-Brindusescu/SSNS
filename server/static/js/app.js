@@ -237,20 +237,6 @@ airportSelect.addEventListener('change', () => {
     fetchWeather();
 });
 
-/* ── Navigation ───────────────────────────────────── */
-document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', e => {
-        e.preventDefault();
-        const targetId = link.dataset.target;
-
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
-
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById(targetId).classList.add('active');
-    });
-});
-
 /* ── Speech-to-Text ──────────────────────────────── */
 const speechForm   = document.getElementById('speech-form');
 const dropZone     = document.getElementById('drop-zone');

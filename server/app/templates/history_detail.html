@@ -66,7 +66,12 @@
                         </div>
                         {% endif %}
                         {% if source.metar %}
-                            {% if source.metar.temperature is not none %}
+                            {% if source.metar.temperature_c is defined and source.metar.temperature_c is not none %}
+                            <div class="weather-field">
+                                <span class="weather-label">Temperatura</span>
+                                <span>{{ source.metar.temperature_c }}&deg;C</span>
+                            </div>
+                            {% elif source.metar.temperature is defined and source.metar.temperature is not none %}
                             <div class="weather-field">
                                 <span class="weather-label">Temperatura</span>
                                 <span>{{ source.metar.temperature }}&deg;C</span>
@@ -78,13 +83,18 @@
                                 <span>{{ source.metar.wind.direction_deg }}&deg; / {{ source.metar.wind.speed_kt }} kt{% if source.metar.wind.gust_kt %} rafale {{ source.metar.wind.gust_kt }} kt{% endif %}</span>
                             </div>
                             {% endif %}
-                            {% if source.metar.visibility %}
+                            {% if source.metar.visibility_sm is defined and source.metar.visibility_sm is not none %}
                             <div class="weather-field">
                                 <span class="weather-label">Vizibilitate</span>
-                                <span>{{ source.metar.visibility.value }} {{ source.metar.visibility.unit }}</span>
+                                <span>{{ source.metar.visibility_sm }} SM</span>
+                            </div>
+                            {% elif source.metar.visibility_miles is defined and source.metar.visibility_miles is not none %}
+                            <div class="weather-field">
+                                <span class="weather-label">Vizibilitate</span>
+                                <span>{{ source.metar.visibility_miles }} SM</span>
                             </div>
                             {% endif %}
-                            {% if source.metar.flight_category %}
+                            {% if source.metar.flight_category is defined and source.metar.flight_category %}
                             <div class="weather-field">
                                 <span class="weather-label">Categorie zbor</span>
                                 <span class="flight-cat flight-cat-{{ source.metar.flight_category | lower }}">{{ source.metar.flight_category }}</span>
