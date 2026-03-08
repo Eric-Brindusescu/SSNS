@@ -13,6 +13,7 @@ from app.config import settings
 from app.schemas.snowtam import SnowtamRequest, SnowtamResponse
 from app.services.db_service import save_generation
 from app.services.snowtam_service import AIRPORTS, DEFAULTS, extract_snowtam
+from app.services.weather_service import fetch_all_weather
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -65,14 +66,22 @@ async def snowtam_endpoint(request: SnowtamRequest):
             status_code=500, detail=f"SNOWTAM extraction failed: {exc}"
         ) from exc
 
+    icao = request.airport_code or "LROD"
+    weather_data = None
+    try:
+        weather_data = await fetch_all_weather(icao)
+    except Exception:
+        logger.warning("Failed to fetch weather for %s during generation", icao)
+
     generation_id = save_generation(
-        airport_code=request.airport_code or "LROD",
+        airport_code=icao,
         operator_code=request.operator_code or "OPS01",
         speech_text=request.speech_text,
         curated_text=request.curated_text,
         default_parameters=DEFAULTS,
         extracted_parameters=result["dtc"],
         generated_html=result["html"],
+        weather_data=weather_data,
     )
 
     return SnowtamResponse(

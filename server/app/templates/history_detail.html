@@ -50,6 +50,59 @@
                 </div>
             </div>
 
+            {% if gen.weather_data %}
+            <div class="result result-weather">
+                <h3>Date Meteo la Momentul Generării</h3>
+                {% for source in gen.weather_data %}
+                <div class="weather-source-block">
+                    <h4>{{ source.source }}</h4>
+                    {% if source.error %}
+                    <p class="weather-error-text">{{ source.error }}</p>
+                    {% else %}
+                        {% if source.metar and source.metar.raw %}
+                        <div class="weather-field">
+                            <span class="weather-label">METAR</span>
+                            <code class="weather-raw">{{ source.metar.raw }}</code>
+                        </div>
+                        {% endif %}
+                        {% if source.metar %}
+                            {% if source.metar.temperature is not none %}
+                            <div class="weather-field">
+                                <span class="weather-label">Temperatura</span>
+                                <span>{{ source.metar.temperature }}&deg;C</span>
+                            </div>
+                            {% endif %}
+                            {% if source.metar.wind %}
+                            <div class="weather-field">
+                                <span class="weather-label">Vânt</span>
+                                <span>{{ source.metar.wind.direction_deg }}&deg; / {{ source.metar.wind.speed_kt }} kt{% if source.metar.wind.gust_kt %} rafale {{ source.metar.wind.gust_kt }} kt{% endif %}</span>
+                            </div>
+                            {% endif %}
+                            {% if source.metar.visibility %}
+                            <div class="weather-field">
+                                <span class="weather-label">Vizibilitate</span>
+                                <span>{{ source.metar.visibility.value }} {{ source.metar.visibility.unit }}</span>
+                            </div>
+                            {% endif %}
+                            {% if source.metar.flight_category %}
+                            <div class="weather-field">
+                                <span class="weather-label">Categorie zbor</span>
+                                <span class="flight-cat flight-cat-{{ source.metar.flight_category | lower }}">{{ source.metar.flight_category }}</span>
+                            </div>
+                            {% endif %}
+                        {% endif %}
+                        {% if source.taf and source.taf.raw %}
+                        <div class="weather-field">
+                            <span class="weather-label">TAF</span>
+                            <code class="weather-raw">{{ source.taf.raw }}</code>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
             <div class="result result-snowtam">
                 <h3>Formular SNOWTAM</h3>
                 <iframe id="snowtam-preview" srcdoc="{{ gen.generated_html | e }}" sandbox="allow-same-origin"></iframe>

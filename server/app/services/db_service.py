@@ -31,7 +31,8 @@ def init_db():
             curated_text TEXT,
             default_parameters TEXT NOT NULL,
             extracted_parameters TEXT NOT NULL,
-            generated_html TEXT NOT NULL
+            generated_html TEXT NOT NULL,
+            weather_data TEXT
         )
     """)
     conn.commit()
@@ -47,6 +48,7 @@ def save_generation(
     default_parameters: dict,
     extracted_parameters: dict,
     generated_html: str,
+    weather_data: list | None = None,
 ) -> int:
     """Save a generation record and return its id."""
     conn = _get_connection()
@@ -54,8 +56,8 @@ def save_generation(
         """
         INSERT INTO generations
             (created_at, airport_code, operator_code, speech_text, curated_text,
-             default_parameters, extracted_parameters, generated_html)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+             default_parameters, extracted_parameters, generated_html, weather_data)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             datetime.now(timezone.utc).isoformat(),
@@ -66,6 +68,7 @@ def save_generation(
             json.dumps(default_parameters, ensure_ascii=False),
             json.dumps(extracted_parameters, ensure_ascii=False),
             generated_html,
+            json.dumps(weather_data, ensure_ascii=False) if weather_data else None,
         ),
     )
     conn.commit()
@@ -113,4 +116,6 @@ def get_generation(generation_id: int) -> dict | None:
     result = dict(row)
     result["default_parameters"] = json.loads(result["default_parameters"])
     result["extracted_parameters"] = json.loads(result["extracted_parameters"])
+    if result.get("weather_data"):
+        result["weather_data"] = json.loads(result["weather_data"])
     return result
